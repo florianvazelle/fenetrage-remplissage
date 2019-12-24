@@ -20,6 +20,8 @@ if (NOT IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/ext/nanogui/include")
                       "git submodule update --init --recursive")
 endif()
 
+include_directories(include)
+
 # nanoGUI submodule ------
 # Disable building extras we won't need (pure C++ project)
 set(NANOGUI_BUILD_EXAMPLE OFF CACHE BOOL " " FORCE)
@@ -32,9 +34,7 @@ add_subdirectory(ext/nanogui)
 # For reliability of parallel build, make the NanoGUI targets dependencies
 set_property(TARGET glfw glfw_objects nanogui PROPERTY FOLDER "dependencies")
 
-
 # On top of adding the path to nanogui/include, you may need extras
-include_directories(include)
 include_directories(ext/nanogui/include)
 include_directories(${NANOGUI_EXTRA_INCS})
 
@@ -46,8 +46,11 @@ add_definitions(${NANOGUI_EXTRA_DEFS})
 # GLEW ------
 find_package(GLEW REQUIRED)
 if (GLEW_FOUND)
-    include_directories(${GLEW_INCLUDE_DIRS})
-    link_libraries(${GLEW_LIBRARIES})
+  include_directories(${GLEW_INCLUDE_DIRS})
+  link_libraries(${GLEW_LIBRARIES})
+else()
+  add_subdirectory(ext/glew)
+  include_directories(ext/glew/include)
 endif()
 # ------------------------
 
