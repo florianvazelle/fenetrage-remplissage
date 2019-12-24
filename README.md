@@ -4,7 +4,9 @@
 ```
 git clone --recursive https://github.com/florianvazelle/fenetrage-remplissage.git
 cd fenetrage-remplissage
-cmake .
+mkdir build
+cd build
+cmake ..
 make
 ./bin/fenetrage-remplissage
 ```

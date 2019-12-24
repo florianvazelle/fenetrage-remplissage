@@ -1,6 +1,8 @@
 project("fenetrage-remplissage")
 cmake_minimum_required(VERSION 3.1.3 FATAL_ERROR)
 
+find_package(OpenGL REQUIRED)
+
 # CMAKE_CXX_STANDARD introduced in v3.1.3
 set(CMAKE_CXX_STANDARD          11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -11,16 +13,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
 
-set(NANOGUI_INSTALL       OFF CACHE BOOL " " FORCE)
-
 if (NOT IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/ext/nanogui/include")
   message(FATAL_ERROR "The NanoGUI dependency is missing!  You probably did not "
                       "clone the project with --recursive. It is possible to "
-                      "recover by calling\n    "
+                      "recover by calling\n"
                       "git submodule update --init --recursive")
 endif()
 
-# nanoGUI Submodule ------
+# nanoGUI submodule ------
 # Disable building extras we won't need (pure C++ project)
 set(NANOGUI_BUILD_EXAMPLE OFF CACHE BOOL " " FORCE)
 set(NANOGUI_BUILD_PYTHON  OFF CACHE BOOL " " FORCE)
@@ -34,6 +34,7 @@ set_property(TARGET glfw glfw_objects nanogui PROPERTY FOLDER "dependencies")
 
 
 # On top of adding the path to nanogui/include, you may need extras
+include_directories(include)
 include_directories(ext/nanogui/include)
 include_directories(${NANOGUI_EXTRA_INCS})
 
@@ -42,18 +43,20 @@ add_definitions(${NANOGUI_EXTRA_DEFS})
 
 # ------------------------
 
+# GLEW ------
+find_package(GLEW REQUIRED)
+if (GLEW_FOUND)
+    include_directories(${GLEW_INCLUDE_DIRS})
+    link_libraries(${GLEW_LIBRARIES})
+endif()
+# ------------------------
+
 
 #Find all Header and Source files
-file(GLOB_RECURSE ${PROJECT_NAME}_HEADERS src/*.h)
+file(GLOB_RECURSE ${PROJECT_NAME}_HEADERS include/*.h)
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES src/*.cpp)
 
-add_executable(${PROJECT_NAME}
-        ${${PROJECT_NAME}_SOURCES}
-        ${${PROJECT_NAME}_HEADERS}
-        )
+add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_HEADERS} ${MyResources})
 
 #link libraries to project
-target_link_libraries(${PROJECT_NAME}
-        nanogui
-        ${OPENGL_LIBRARIES}
-        )
+target_link_libraries(${PROJECT_NAME} nanogui ${OPENGL_LIBRARIES})
