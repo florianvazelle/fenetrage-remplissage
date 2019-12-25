@@ -60,6 +60,9 @@ include_directories(${NANOGUI_EXTRA_INCS})
 add_definitions(${NANOGUI_EXTRA_DEFS})
 
 # GLEW ------
+set(GLEW_INCLUDE_DIRS, ${PROJECT_SOURCE_DIR}/ext/glew-cmake/include)
+set(GLEW_LIBRARIES, ${PROJECT_SOURCE_DIR}/ext/glew-cmake)
+
 option(glew-cmake_BUILD_SHARED "" OFF)
 add_subdirectory(${PROJECT_SOURCE_DIR}/ext/glew-cmake)
 include_directories(${PROJECT_SOURCE_DIR}/ext/glew-cmake/include ${PROJECT_SOURCE_DIR}/ext/glew-cmake/src)

@@ -1,4 +1,5 @@
 #include <iostream>
+# define M_PI 3.14159265358979323846f
 
 float cot(float x) {
     return cos(x) / sin(x);
@@ -65,7 +66,7 @@ struct mat4 {
     void proj3D(float fovy, float aspect, float near, float far) {
         // cot => cotangents
         float f = 1 / tan(fovy / 2);
-        float rangeInv = 1.0 / (near - far);
+        float rangeInv = 1.0f / (near - far);
 
         this->data[0] = f / aspect;
         this->data[5] = f;
@@ -77,14 +78,14 @@ struct mat4 {
 
     void makePerspective(float fieldOfViewInRadians, float aspect, float near, float far) {
         float ymax, xmax;
-        ymax = near * tanf(fieldOfViewInRadians * M_PI / 360.0);
+        ymax = near * tanf(fieldOfViewInRadians * M_PI / 360);
         xmax = ymax * aspect;
         this->frustum(-xmax, xmax, -ymax, ymax, near, far);
     }
 
     void frustum(float left, float right, float bottom, float top, float near, float far){
         float temp, temp2, temp3, temp4;
-        temp = 2.0 * near;
+        temp = 2.0f * near;
         temp2 = right - left;
         temp3 = top - bottom;
         temp4 = far - near;

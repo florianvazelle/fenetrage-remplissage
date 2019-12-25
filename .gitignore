@@ -30,6 +30,8 @@ docs/_doxygen
 docs/api
 bin/
 lib/
+.vs/
+CMakeSettings.json
 
 # entypo update generation
 # this is it's own repo: https://github.com/svenevs/nanogui-entypo
