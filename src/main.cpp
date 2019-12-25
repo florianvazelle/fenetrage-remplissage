@@ -41,11 +41,11 @@ void Initialize() {
     std::cout << "Vendor : " << glGetString(GL_VENDOR) << std::endl;
     std::cout << "Renderer : " << glGetString(GL_RENDERER) << std::endl;
 
-    g_BasicShader.LoadVertexShader("../resources/shaders/Basic.vs");
-    g_BasicShader.LoadFragmentShader("../resources/shaders/Basic.fs");
+    g_BasicShader.LoadVertexShader("./resources/shaders/Basic.vs");
+    g_BasicShader.LoadFragmentShader("./resources/shaders/Basic.fs");
     g_BasicShader.Create();
 
-    const std::string model = "../resources/models/suzanne.obj";
+    const std::string model = "./resources/models/suzanne.obj";
 
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
