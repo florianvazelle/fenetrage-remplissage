@@ -1,4 +1,4 @@
-#include <GL/glew.h>
+#include <nanogui/opengl.h>
 
 class GLTexture {
   public:
