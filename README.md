@@ -12,4 +12,4 @@ cd bin/ && ./fenetrage-remplissage
 ```
 
 ## Visual Studio
-[CMake projects in Visual Studio] (https://docs.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio)
+[CMake projects in Visual Studio](https://docs.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio)
