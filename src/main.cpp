@@ -1,4 +1,19 @@
-#include <GL/glew.h>
+#if defined(NANOGUI_GLAD)
+    #if defined(NANOGUI_SHARED) && !defined(GLAD_GLAPI_EXPORT)
+        #define GLAD_GLAPI_EXPORT
+    #endif
+       
+    #include <glad/glad.h>
+#else
+    #if defined(__APPLE__)
+        #define GLFW_INCLUDE_GLCOREARB
+    #else
+        #define GL_GLEXT_PROTOTYPES
+    #endif
+#endif
+
+#include <nanogui/opengl.h>
+#include <GUI.h>
 #include <GLFW/glfw3.h>
 
 #include <math.h>
@@ -11,7 +26,7 @@
 #include <GLShader.h>
 #include <GLTexture.h>
 #include <Mat4.h>
-#include <GUI.h>
+
 
 struct Vertex {
     float x, y, z;
@@ -30,11 +45,11 @@ GLShader g_BasicShader;
 std::vector<GLushort> indices;
 
 void Initialize() {
-    GLenum error = glewInit();
-
-    if (error != GLEW_OK) {
-        std::cout << "erreur d'initialisation de GLEW!" << std::endl;
-    }
+#if defined(NANOGUI_GLAD)
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+        throw std::runtime_error("Could not initialize GLAD!");
+    glGetError(); // pull and ignore unhandled errors like GL_INVALID_ENUM
+#endif
 
     std::cout << "Version : " << glGetString(GL_VERSION) << std::endl;
     std::cout << "Vendor : " << glGetString(GL_VENDOR) << std::endl;
@@ -177,11 +192,11 @@ void Display(GLFWwindow* window){
 
     mat4 proj3DMatrix;
     float angle = 90.0f;
-    float near = 0.1f;
-    float far = 100.0f;
+    float n = 0.1f;
+    float f = 100.0f;
     float aspect = width / height;
     proj3DMatrix.identity();
-    proj3DMatrix.makePerspective((angle * M_PI) / 180, aspect, near, far);
+    proj3DMatrix.makePerspective((angle * M_PI) / 180, aspect, n, f);
     int locMatrix = glGetUniformLocation(basic, "u_proj3DMatrix");
     glUniformMatrix4fv(locMatrix, 1, GL_FALSE, proj3DMatrix.data);
 

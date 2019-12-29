@@ -1,6 +1,6 @@
 
 #include <GLShader.h>
-#include <GL/glew.h>
+#include <nanogui/opengl.h>
 
 #include <fstream>
 #include <iostream>

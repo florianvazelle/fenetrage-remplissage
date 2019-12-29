@@ -54,41 +54,41 @@ struct mat4 {
         this->data[5] = cos(angle);
     }
 
-    void ortho(float left, float right, float bottom, float top, float near, float far) {
+    void ortho(float left, float right, float bottom, float top, float n, float f) {
         this->data[0] = 2 / (right - left);
         this->data[12] = -(right + left) / (right - left);
         this->data[5] = 2 / (top - bottom);
         this->data[13] = -(top + bottom) / (top - bottom);
-        this->data[10] = -2 / (far - near);
-        this->data[14] = -(far + near) / (far - near);
+        this->data[10] = -2 / (f - n);
+        this->data[14] = -(f + n) / (f - n);
     }
 
-    void proj3D(float fovy, float aspect, float near, float far) {
+    void proj3D(float fovy, float aspect, float n, float f) {
         // cot => cotangents
-        float f = 1 / tan(fovy / 2);
-        float rangeInv = 1.0f / (near - far);
+        float f2 = 1 / tan(fovy / 2);
+        float rangeInv = 1.0f / (n - f);
 
-        this->data[0] = f / aspect;
-        this->data[5] = f;
-        this->data[10] = (near + far) * rangeInv;
+        this->data[0] = f2 / aspect;
+        this->data[5] = f2;
+        this->data[10] = (n + f) * rangeInv;
         this->data[11] = -1;
-        this->data[14] = near * far * rangeInv * 2;
+        this->data[14] = n * f * rangeInv * 2;
         this->data[15] = 0;
     }
 
-    void makePerspective(float fieldOfViewInRadians, float aspect, float near, float far) {
+    void makePerspective(float fieldOfViewInRadians, float aspect, float n, float f) {
         float ymax, xmax;
-        ymax = near * tanf(fieldOfViewInRadians * M_PI / 360);
+        ymax = n * tanf(fieldOfViewInRadians * M_PI / 360);
         xmax = ymax * aspect;
-        this->frustum(-xmax, xmax, -ymax, ymax, near, far);
+        this->frustum(-xmax, xmax, -ymax, ymax, n, f);
     }
 
-    void frustum(float left, float right, float bottom, float top, float near, float far){
+    void frustum(float left, float right, float bottom, float top, float n, float f){
         float temp, temp2, temp3, temp4;
-        temp = 2.0f * near;
+        temp = 2.0f * n;
         temp2 = right - left;
         temp3 = top - bottom;
-        temp4 = far - near;
+        temp4 = f - n;
         this->data[0] = temp / temp2;
         this->data[1] = 0.0;
         this->data[2] = 0.0;
@@ -99,11 +99,11 @@ struct mat4 {
         this->data[7] = 0.0;
         this->data[8] = (right + left) / temp2;
         this->data[9] = (top + bottom) / temp3;
-        this->data[10] = (-far - near) / temp4;
+        this->data[10] = (-f - n) / temp4;
         this->data[11] = -1.0;
         this->data[12] = 0.0;
         this->data[13] = 0.0;
-        this->data[14] = (-temp * far) / temp4;
+        this->data[14] = (-temp * f) / temp4;
         this->data[15] = 0.0;
     }
 };
