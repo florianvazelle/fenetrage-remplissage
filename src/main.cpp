@@ -10,6 +10,8 @@
     #else
         #define GL_GLEXT_PROTOTYPES
     #endif
+
+    #include <GL/glew.h>
 #endif
 
 #include <nanogui/opengl.h>
@@ -49,6 +51,12 @@ void Initialize() {
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
         throw std::runtime_error("Could not initialize GLAD!");
     glGetError(); // pull and ignore unhandled errors like GL_INVALID_ENUM
+#else
+    GLenum error = glewInit();
+
+    if (error != GLEW_OK) {
+        std::cout << "erreur d'initialisation de GLEW!" << std::endl;
+    }
 #endif
 
     std::cout << "Version : " << glGetString(GL_VERSION) << std::endl;
