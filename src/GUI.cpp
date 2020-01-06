@@ -1,3 +1,4 @@
+#include "env.h"
 #include <GUI.h>
 #include <nanogui/nanogui.h>
 
@@ -6,8 +7,14 @@ void GUI::init(GLFWwindow *window) {
     initialize(window, true);
 
     FormHelper *gui = new FormHelper(this);
-    ref<Window> nanoguiWindow = gui->addWindow(Eigen::Vector2i(10, 10), "Update");
-    gui->addButton("Random color", []() { std::cout << "Button pressed." << std::endl; })->setTooltip("To change color of model");
+    ref<Window> nanoguiWindow = gui->addWindow(Eigen::Vector2i(10, 10), "Actions");
+    gui->addGroup("Tracer");
+    gui->addButton("Polygone", []() { std::cout << "Button pressed." << std::endl; changeMode(Mode::polygone); });
+    gui->addButton("Fenetre", []() { std::cout << "Button pressed." << std::endl; changeMode(Mode::fenetre); });
+    
+    gui->addGroup("Effectuer");
+    gui->addButton("Fenetrage", []() { std::cout << "Fenetrage" << std::endl; });
+    gui->addButton("Remplissage", []() { std::cout << "Remplissage" << std::endl; });
 
     setVisible(true);
     performLayout();
@@ -19,6 +26,14 @@ void GUI::init(GLFWwindow *window) {
     });
 
     glfwSetMouseButtonCallback(window, [](GLFWwindow * window, int button, int action, int modifiers) {
+        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+            std::cout << "Click Left!" << std::endl;
+            if (mode == Mode::polygone) {
+
+            } else if (mode == Mode::fenetre) {
+
+            }
+        }
         static_cast<GUI*>(glfwGetWindowUserPointer(window))->mouseButtonCallbackEvent(button, action, modifiers);
     });
 
