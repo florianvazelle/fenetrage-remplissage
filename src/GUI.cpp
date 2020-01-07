@@ -23,10 +23,15 @@ void GUI::init(GLFWwindow *window) {
     glfwSetWindowUserPointer(window, this);
     glfwSetCursorPosCallback(window, [](GLFWwindow * window, double x, double y) {
         static_cast<GUI*>(glfwGetWindowUserPointer(window))->cursorPosCallbackEvent(x, y);
+        //std::cout << "Mouse pos: (" << x << ", " << y << ")" << std::endl;
+        mouse[0] = x;
+        mouse[1] = y;
     });
 
     glfwSetMouseButtonCallback(window, [](GLFWwindow * window, int button, int action, int modifiers) {
-        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+        bool inWidget = static_cast<GUI*>(glfwGetWindowUserPointer(window))->mouseButtonCallbackEvent(button, action, modifiers);
+        if (!inWidget && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+            std::cout << "Mouse pos: (" << mouse[0] << ", " << mouse[1] << ")" << std::endl;
             std::cout << "Click Left!" << std::endl;
             if (mode == Mode::polygone) {
 
@@ -34,7 +39,6 @@ void GUI::init(GLFWwindow *window) {
 
             }
         }
-        static_cast<GUI*>(glfwGetWindowUserPointer(window))->mouseButtonCallbackEvent(button, action, modifiers);
     });
 
     glfwSetKeyCallback(window, [](GLFWwindow * window, int key, int scancode, int action, int mods) {

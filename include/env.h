@@ -1,9 +1,12 @@
 #include <iostream>
+#include <nanogui/nanogui.h>
 
-enum class Mode { noop, polygone, fenetre };
-enum Mode mode = Mode::noop;
+enum Mode : int { noop, polygone, fenetre };
+Mode mode = Mode::noop;
 
-void changeMode(enum Mode m) {
+Eigen::Vector2d mouse(0.0f, 0.0f);
+
+void changeMode(Mode m) {
 	static const char* ModeStrings[] = { "noop", "polygone", "fenetre" };
 	std::cout << "Changement de mode: " << ModeStrings[m] << std::endl;
 	mode = m;
