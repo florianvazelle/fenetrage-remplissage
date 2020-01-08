@@ -13,6 +13,7 @@ void GUI::init(GLFWwindow *window) {
     Button* btn_noop = gui->addButton("Noop", []() { std::cout << "Button pressed." << std::endl; myenv.changeMode(myenv.Mode::noop); });
     btn_noop->setFlags(Button::RadioButton);
     btn_noop->setTooltip("Rien ne se passe");
+    btn_noop->setPushed(true);
     gui->addButton("Polygone", []() { std::cout << "Button pressed." << std::endl; myenv.changeMode(myenv.Mode::polygone); })->setFlags(Button::RadioButton);
     gui->addButton("Fenetre", []() { std::cout << "Button pressed." << std::endl; myenv.changeMode(myenv.Mode::fenetre); })->setFlags(Button::RadioButton);
     

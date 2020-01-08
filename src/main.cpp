@@ -52,6 +52,35 @@ void Shutdown() {
     g_BasicShader.Destroy();
 }
 
+void drawVec(std::vector<float> vec, int width, int height) {
+    auto basic = g_BasicShader.GetProgram();
+    glUseProgram(basic);
+
+    if (myenv.mode != myenv.Mode::noop) {
+        float xClip = ((myenv.mouse[0] + 0.5f) / width) * 2.0f - 1.0f;
+        float yClip = 1.0f - ((myenv.mouse[1] + 0.5f) / height) * 2.0f;
+        vec.push_back(xClip);
+        vec.push_back(yClip);
+    }
+
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, vec.size() * sizeof(float), &vec[0], GL_STATIC_DRAW);
+
+    int loc_position = glGetAttribLocation(basic, "a_position");
+    glEnableVertexAttribArray(loc_position);
+    glVertexAttribPointer(loc_position, 2, GL_FLOAT, false, sizeof(float) * 2, 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    if (vec.size() > 4)
+        glDrawArrays(GL_LINE_STRIP, 0, vec.size() / 2);
+    else if (vec.size() == 4)
+        glDrawArrays(GL_LINES, 0, vec.size() / 2);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
 void Display(GLFWwindow* window){
     int width, height;
     
@@ -62,30 +91,32 @@ void Display(GLFWwindow* window){
 
     glViewport(0, 0, width, height);
 
-    auto basic = g_BasicShader.GetProgram();
-    glUseProgram(basic);
-
+    float xClip, yClip;
+    std::vector<float> fenetreVec;
     for (auto v : myenv.f.mesh) {
-        std::cout << "(" << v[0] << "," << v[1] << ")" << std::endl;
+        xClip = ((v[0] + 0.5f) / width) * 2.0f - 1.0f;
+        yClip = 1.0f - ((v[1] + 0.5f) / height) * 2.0f;
+        fenetreVec.push_back(xClip);
+        fenetreVec.push_back(yClip);
     }
 
-    myenv.f.addVertex(myenv.mouse);
+    std::vector<float> polygoneVec;
+    for (auto v : myenv.p.mesh) {
+        xClip = ((v[0] + 0.5f) / width) * 2.0f - 1.0f;
+        yClip = 1.0f - ((v[1] + 0.5f) / height) * 2.0f;
+        polygoneVec.push_back(xClip);
+        polygoneVec.push_back(yClip);
+    }
 
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, myenv.f.mesh.size() * sizeof(Eigen::Vector2f), &myenv.f.mesh[0], GL_STATIC_DRAW);
+    if (fenetreVec.size() != 0) {
+        drawVec(fenetreVec, width, height);
+        fenetreVec.clear();
+    }
 
-    int loc_position = glGetAttribLocation(basic, "a_position");
-    glEnableVertexAttribArray(loc_position);
-    glVertexAttribPointer(loc_position, 2, GL_FLOAT, false, sizeof(Eigen::Vector2f), 0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, myenv.f.mesh.size());
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    myenv.f.mesh.pop_back();
+    if (polygoneVec.size() != 0) {
+        drawVec(polygoneVec, width, height);
+        polygoneVec.clear();
+    }
 }
 
 int main(void) {
