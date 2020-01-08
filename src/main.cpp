@@ -65,15 +65,15 @@ void Display(GLFWwindow* window){
     auto basic = g_BasicShader.GetProgram();
     glUseProgram(basic);
 
-    for (auto v : f.mesh) {
+    for (auto v : myenv.f.mesh) {
         std::cout << "(" << v[0] << "," << v[1] << ")" << std::endl;
     }
 
-    f.addVertex(mouse);
+    myenv.f.addVertex(myenv.mouse);
 
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, f.mesh.size() * sizeof(Eigen::Vector2f), &f.mesh[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, myenv.f.mesh.size() * sizeof(Eigen::Vector2f), &myenv.f.mesh[0], GL_STATIC_DRAW);
 
     int loc_position = glGetAttribLocation(basic, "a_position");
     glEnableVertexAttribArray(loc_position);
@@ -82,10 +82,10 @@ void Display(GLFWwindow* window){
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, f.mesh.size());
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, myenv.f.mesh.size());
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    f.mesh.pop_back();
+    myenv.f.mesh.pop_back();
 }
 
 int main(void) {
