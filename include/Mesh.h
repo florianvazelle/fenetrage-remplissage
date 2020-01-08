@@ -2,14 +2,19 @@
 #define MESH_H
 
 #include <vector>
+#include <nanogui/nanogui.h>
 
-// Pour fenetre et polygone
-struct Mesh {
+class Mesh {
+private:
 	std::vector<Eigen::Vector2f> mesh;
+	GLuint _vbo;
 
-	void addVertex(Eigen::Vector2f vec) {
-		mesh.push_back(vec);
-	}
+public:
+	void addVertex(Eigen::Vector2f vec);
+
+	void init(void);
+    void destroy(void);
+    void draw(int width, int height, uint32_t shader, bool includeMouse, Eigen::Vector2f mouse);
 };
 
 #endif

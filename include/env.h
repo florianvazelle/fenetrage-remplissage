@@ -9,8 +9,7 @@ struct Env {
 	Mode mode = Mode::noop;
 
 	Eigen::Vector2f mouse = Eigen::Vector2f(0.0f, 0.0f);
-	Mesh p;
-	Mesh f;
+	Mesh p, f;
 
 	void changeMode(Mode m) {
 		static const char* ModeStrings[] = { "noop", "polygone", "fenetre" };
