@@ -17,7 +17,7 @@ public:
     void destroy(void);
     void draw(int width, int height, uint32_t shader, bool includeMouse, Eigen::Vector2f mouse);
 	
-	int size() const { return mesh.size(); };
+	size_t size() const { return mesh.size(); };
 	void setColor(nanogui::Color c);
 };
 

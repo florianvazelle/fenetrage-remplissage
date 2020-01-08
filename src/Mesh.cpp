@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Mesh.h"
 
 void Mesh::addVertex(Eigen::Vector2f vec) {
@@ -14,29 +15,20 @@ void Mesh::destroy() {
 
 void Mesh::draw(int width, int height, uint32_t shader, bool includeMouse, Eigen::Vector2f mouse) {
     if (mesh.size() > 0) {
-        std::vector<float> tmp;
-
-        float xClip, yClip;
-        for (auto v : mesh) {
-            xClip = ((v[0] + 0.5f) / width) * 2.0f - 1.0f;
-            yClip = 1.0f - ((v[1] + 0.5f) / height) * 2.0f;
-            tmp.push_back(xClip);
-            tmp.push_back(yClip);
-        }
+        std::vector<Eigen::Vector2f> tmp(mesh);
 
         if (includeMouse) {
             float xClip = ((mouse[0] + 0.5f) / width) * 2.0f - 1.0f;
             float yClip = 1.0f - ((mouse[1] + 0.5f) / height) * 2.0f;
-            tmp.push_back(xClip);
-            tmp.push_back(yClip);
+            tmp.push_back({ xClip, yClip });
         }
 
         glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-        glBufferData(GL_ARRAY_BUFFER, tmp.size() * sizeof(float), &tmp[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, tmp.size() * sizeof(Eigen::Vector2f), &tmp[0], GL_STATIC_DRAW);
 
         int loc_position = glGetAttribLocation(shader, "a_position");
         glEnableVertexAttribArray(loc_position);
-        glVertexAttribPointer(loc_position, 2, GL_FLOAT, false, sizeof(float) * 2, 0);
+        glVertexAttribPointer(loc_position, 2, GL_FLOAT, false, sizeof(Eigen::Vector2f), 0);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -45,9 +37,9 @@ void Mesh::draw(int width, int height, uint32_t shader, bool includeMouse, Eigen
 
         glBindBuffer(GL_ARRAY_BUFFER, _vbo);
         if (tmp.size() > 2)
-            glDrawArrays(GL_LINE_STRIP, 0, tmp.size() / 2);
+            glDrawArrays(GL_LINE_STRIP, 0, (GLsizei)tmp.size());
         else if (tmp.size() == 2)
-            glDrawArrays(GL_LINES, 0, tmp.size() / 2);
+            glDrawArrays(GL_LINES, 0, (GLsizei)tmp.size());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 }

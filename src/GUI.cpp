@@ -34,7 +34,6 @@ void GUI::init(GLFWwindow *window) {
     glfwSetWindowUserPointer(window, this);
     glfwSetCursorPosCallback(window, [](GLFWwindow * window, double x, double y) {
         static_cast<GUI*>(glfwGetWindowUserPointer(window))->cursorPosCallbackEvent(x, y);
-        //std::cout << "Mouse pos: (" << x << ", " << y << ")" << std::endl;
         myenv.mouse[0] = (float)x;
         myenv.mouse[1] = (float)y;
     });
@@ -44,10 +43,12 @@ void GUI::init(GLFWwindow *window) {
         if (!inWidget && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
             std::cout << "Mouse pos: (" << myenv.mouse[0] << ", " << myenv.mouse[1] << ")" << std::endl;
             std::cout << "Click Left!" << std::endl;
+            float xClip = ((myenv.mouse[0] + 0.5f) / myenv.width) * 2.0f - 1.0f;
+            float yClip = 1.0f - ((myenv.mouse[1] + 0.5f) / myenv.height) * 2.0f;
             if (myenv.mode == myenv.Mode::polygone) {
-                myenv.p.addVertex(myenv.mouse);
+                myenv.p.addVertex({ xClip, yClip });
             } else if (myenv.mode == myenv.Mode::fenetre) {
-                myenv.f.addVertex(myenv.mouse);
+                myenv.f.addVertex({ xClip, yClip });
             }
         }
     });

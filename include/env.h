@@ -8,6 +8,8 @@ struct Env {
 	enum Mode : int { noop, polygone, fenetre };
 	Mode mode = Mode::noop;
 
+	int width, height;
+
 	Eigen::Vector2f mouse = Eigen::Vector2f(0.0f, 0.0f);
 	Mesh p, f;
 	nanogui::Color currentColor = nanogui::Color({ 1.0f, 0.0f, 0.0f, 1.0f });
