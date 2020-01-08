@@ -17,18 +17,13 @@
 #include <nanogui/opengl.h>
 #include <GLFW/glfw3.h>
 
-#include <math.h>
 #include <iostream>
-#include <algorithm>
 
 #include "GUI.h"
 #include "GLShader.h"
-#include "GLTexture.h"
-#include "Mat4.h"
-#include "Mesh.h"
 
+GLuint VBO;
 GLShader g_BasicShader;
-Mesh fenetre;
 
 void Initialize() {
 #if defined(NANOGUI_GLAD)
@@ -53,6 +48,7 @@ void Initialize() {
 }
 
 void Shutdown() {
+    glDeleteBuffers(1, &VBO);
     g_BasicShader.Destroy();
 }
 
@@ -68,6 +64,28 @@ void Display(GLFWwindow* window){
 
     auto basic = g_BasicShader.GetProgram();
     glUseProgram(basic);
+
+    for (auto v : f.mesh) {
+        std::cout << "(" << v[0] << "," << v[1] << ")" << std::endl;
+    }
+
+    f.addVertex(mouse);
+
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, f.mesh.size() * sizeof(Eigen::Vector2f), &f.mesh[0], GL_STATIC_DRAW);
+
+    int loc_position = glGetAttribLocation(basic, "a_position");
+    glEnableVertexAttribArray(loc_position);
+    glVertexAttribPointer(loc_position, 2, GL_FLOAT, false, sizeof(Eigen::Vector2f), 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, f.mesh.size());
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    f.mesh.pop_back();
 }
 
 int main(void) {
