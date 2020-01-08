@@ -10,13 +10,19 @@ void GUI::init(GLFWwindow *window) {
     FormHelper *gui = new FormHelper(this);
     ref<Window> nanoguiWindow = gui->addWindow(Eigen::Vector2i(10, 10), "Actions");
     gui->addGroup("Tracer");
+
     Button* btn_noop = gui->addButton("Noop", []() { std::cout << "Button pressed." << std::endl; myenv.changeMode(myenv.Mode::noop); });
     btn_noop->setFlags(Button::RadioButton);
     btn_noop->setTooltip("Rien ne se passe");
     btn_noop->setPushed(true);
+
     gui->addButton("Polygone", []() { std::cout << "Button pressed." << std::endl; myenv.changeMode(myenv.Mode::polygone); })->setFlags(Button::RadioButton);
     gui->addButton("Fenetre", []() { std::cout << "Button pressed." << std::endl; myenv.changeMode(myenv.Mode::fenetre); })->setFlags(Button::RadioButton);
     
+    auto cp = new ColorPicker(nanoguiWindow, { 255, 255, 0, 255 });
+    cp->setFinalCallback([&](const Color& c) { myenv.currentColor = c; });
+    gui->addWidget("", cp);
+
     gui->addGroup("Effectuer");
     gui->addButton("Fenetrage", []() { std::cout << "Fenetrage" << std::endl; });
     gui->addButton("Remplissage", []() { std::cout << "Remplissage" << std::endl; });

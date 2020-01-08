@@ -40,6 +40,9 @@ void Mesh::draw(int width, int height, uint32_t shader, bool includeMouse, Eigen
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+        int loc_color = glGetUniformLocation(shader, "u_color");
+        glUniform4f(loc_color, color.r(), color.g(), color.b(), color.w());
+
         glBindBuffer(GL_ARRAY_BUFFER, _vbo);
         if (tmp.size() > 2)
             glDrawArrays(GL_LINE_STRIP, 0, tmp.size() / 2);
@@ -47,4 +50,8 @@ void Mesh::draw(int width, int height, uint32_t shader, bool includeMouse, Eigen
             glDrawArrays(GL_LINES, 0, tmp.size() / 2);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
+}
+
+void Mesh::setColor(nanogui::Color c) {
+    color = c;
 }

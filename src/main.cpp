@@ -68,6 +68,8 @@ void Display(GLFWwindow* window){
     auto basic = g_BasicShader.GetProgram();
     glUseProgram(basic);
 
+    if (myenv.f.size() == 2) myenv.f.setColor(myenv.currentColor);
+    if (myenv.p.size() == 2) myenv.p.setColor(myenv.currentColor);
     myenv.f.draw(width, height, basic, (myenv.mode == myenv.Mode::fenetre), myenv.mouse);
     myenv.p.draw(width, height, basic, (myenv.mode == myenv.Mode::polygone), myenv.mouse);
 }
