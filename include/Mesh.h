@@ -14,8 +14,8 @@ public:
 	void addVertex(Eigen::Vector2f vec);
 
 	void init(void);
-    void destroy(void);
     void draw(int width, int height, uint32_t shader, bool includeMouse, Eigen::Vector2f mouse);
+	void destroy(void);
 	
 	size_t size() const { return mesh.size(); };
 	void setColor(nanogui::Color c);
