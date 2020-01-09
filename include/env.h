@@ -5,17 +5,17 @@
 #include "Mesh.h"
 
 struct Env {
-	enum Mode : int { noop, polygone, fenetre };
-	Mode mode = Mode::noop;
+	enum Mode : int { no_Operation_mode, edit_Polygon_mode, edit_Window_mode };
+	Mode mode = Mode::no_Operation_mode;
 
 	int width, height;
 
 	Eigen::Vector2f mouse = Eigen::Vector2f(0.0f, 0.0f);
-	Mesh p, f;
+	Mesh polygon, cutWindow;
 	nanogui::Color currentColor = nanogui::Color(Eigen::Vector4f(1.0f, 0.0f, 0.0f, 1.0f));
 
 	void changeMode(Mode m) {
-		static const char* ModeStrings[] = { "noop", "polygone", "fenetre" };
+		static const char* ModeStrings[] = { "no_Operation_mode", "edit_Polygon_mode", "edit_Window_mode" };
 		std::cout << "Changement de mode: " << ModeStrings[m] << std::endl;
 		mode = m;
 	}
