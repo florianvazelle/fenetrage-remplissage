@@ -1,6 +1,14 @@
 #include <nanogui/nanogui.h>
 #include "GUI.h"
 
+GUI::GUI() : nanogui::Screen() {
+    mode = Mode::no_Operation_mode;
+    width = 640;
+    height = 480;
+    mouse = Eigen::Vector2f(0.0f, 0.0f);
+    currentColor = nanogui::Color(Eigen::Vector4f(1.0f, 0.0f, 0.0f, 1.0f));
+};
+
 void GUI::init(GLFWwindow *window) {
     using namespace nanogui;
     initialize(window, true);
@@ -18,7 +26,7 @@ void GUI::init(GLFWwindow *window) {
     gui->addButton("Polygone", [&]() { changeMode(Mode::edit_Polygon_mode); })->setFlags(Button::RadioButton);
     gui->addButton("Fenetre", [&]() { changeMode(Mode::edit_Window_mode); })->setFlags(Button::RadioButton);
     
-    auto cp = new ColorPicker(nanoguiWindow, { 255, 255, 0, 255 });
+    auto cp = new ColorPicker(nanoguiWindow, { 255, 0, 0, 255 });
     cp->setFinalCallback([&](const Color& c) { currentColor = c; });
     gui->addWidget("", cp);
 
@@ -30,15 +38,19 @@ void GUI::init(GLFWwindow *window) {
     performLayout();
 
     defineCallbacks(window);
+
+    cutWindow.init();
+    polygon.init();
 }
 
 void GUI::draw(uint32_t shader) {
     if (cutWindow.size() == 1) cutWindow.setColor(currentColor);
     if (polygon.size() == 1) polygon.setColor(currentColor);
+
     cutWindow.draw(width, height, shader, (mode == Mode::edit_Window_mode), mouse);
     polygon.draw(width, height, shader, (mode == Mode::edit_Polygon_mode), mouse);
 
-    // 
+    // draw de nanoGUI
     drawContents();
     drawWidgets();
 }
@@ -55,52 +67,57 @@ void GUI::changeMode(Mode m) {
 }
 
 void GUI::defineCallbacks(GLFWwindow* window) {
-    // https://stackoverflow.com/questions/28283724/use-a-member-function-as-callback
+    
+    // On bind notre instance de GUI, pour l'utiliser dans les callbacks (https://stackoverflow.com/questions/28283724/use-a-member-function-as-callback)
     glfwSetWindowUserPointer(window, this);
     glfwSetCursorPosCallback(window, [](GLFWwindow* window, double x, double y) {
         GUI* gui = static_cast<GUI*>(glfwGetWindowUserPointer(window));
+
         // Appeler a chaque fois que la souris change de position
         gui->cursorPosCallbackEvent(x, y);
+
         // Sauvegarde de la position de la souris
         gui->mouse[0] = (float)x;
         gui->mouse[1] = (float)y;
-        });
+    });
 
     glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int modifiers) {
         GUI* gui = static_cast<GUI*>(glfwGetWindowUserPointer(window));
+
+        // On recupere si le click a ete realisee dans une widget ou non
         bool inWidget = gui->mouseButtonCallbackEvent(button, action, modifiers);
         if (!inWidget && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-            std::cout << "Mouse pos: (" << gui->mouse[0] << ", " << gui->mouse[1] << ")" << std::endl;
-            std::cout << "Click Left!" << std::endl;
+
             // Convertion Local-to-World [0,width] -> [-1,1] et [0,height] -> [-1,1]
             float xGL = ((gui->mouse[0] + 0.5f) / gui->width) * 2.0f - 1.0f;
             float yGL = 1.0f - ((gui->mouse[1] + 0.5f) / gui->height) * 2.0f;
+
+            // En fonction du mode, on va ajoute le sommets dans le mesh correspondant
             if (gui->mode == Mode::edit_Polygon_mode) {
                 gui->polygon.addVertex({ xGL, yGL });
-            }
-            else if (gui->mode == Mode::edit_Window_mode) {
+            } else if (gui->mode == Mode::edit_Window_mode) {
                 gui->cutWindow.addVertex({ xGL, yGL });
             }
         }
-        });
+    });
 
     glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
         static_cast<GUI*>(glfwGetWindowUserPointer(window))->keyCallbackEvent(key, scancode, action, mods);
-        });
+    });
 
     glfwSetCharCallback(window, [](GLFWwindow* window, unsigned int codepoint) {
         static_cast<GUI*>(glfwGetWindowUserPointer(window))->charCallbackEvent(codepoint);
-        });
+    });
 
     glfwSetDropCallback(window, [](GLFWwindow* window, int count, const char** filenames) {
         static_cast<GUI*>(glfwGetWindowUserPointer(window))->dropCallbackEvent(count, filenames);
-        });
+    });
 
     glfwSetScrollCallback(window, [](GLFWwindow* window, double x, double y) {
         static_cast<GUI*>(glfwGetWindowUserPointer(window))->scrollCallbackEvent(x, y);
-        });
+    });
 
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
         static_cast<GUI*>(glfwGetWindowUserPointer(window))->resizeCallbackEvent(width, height);
-        });
+    });
 }

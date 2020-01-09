@@ -14,17 +14,21 @@ void Mesh::destroy() {
 }
 
 void Mesh::draw(int width, int height, uint32_t shader, bool includeMouse, Eigen::Vector2f mouse) {
+    // Si il y a des sommets
     if (mesh.size() > 0) {
+        // On copie l'ensemble des sommets dans une variable temporaire
         std::vector<Eigen::Vector2f> tmp(mesh);
 
+        // Si on est entrain de dessinee le mesh, on ajoute la coordonnee de la souris a la liste des sommets
         if (includeMouse) {
             float xClip = ((mouse[0] + 0.5f) / width) * 2.0f - 1.0f;
             float yClip = 1.0f - ((mouse[1] + 0.5f) / height) * 2.0f;
             tmp.push_back({ xClip, yClip });
         }
 
+        // On bind le vbo pour le modifier
         glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-        glBufferData(GL_ARRAY_BUFFER, tmp.size() * sizeof(Eigen::Vector2f), &tmp[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, tmp.size() * sizeof(Eigen::Vector2f), &tmp[0], GL_DYNAMIC_DRAW);
 
         int loc_position = glGetAttribLocation(shader, "a_position");
         glEnableVertexAttribArray(loc_position);
@@ -32,14 +36,18 @@ void Mesh::draw(int width, int height, uint32_t shader, bool includeMouse, Eigen
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+        // J'envoie la couleur du mesh dans le shader
         int loc_color = glGetUniformLocation(shader, "u_color");
         glUniform4f(loc_color, color.r(), color.g(), color.b(), color.w());
 
+        // Je bind le VBO du mesh
         glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+        // Et je le dessine
         if (tmp.size() > 2)
             glDrawArrays(GL_LINE_STRIP, 0, (GLsizei)tmp.size());
         else if (tmp.size() == 2)
             glDrawArrays(GL_LINES, 0, (GLsizei)tmp.size());
+        // Je bind a zero, pour eviter toute modifications du vbo
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 }
