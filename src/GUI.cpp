@@ -7,6 +7,7 @@ void GUI::init(GLFWwindow *window) {
     using namespace nanogui;
     initialize(window, true);
 
+    /* */
     FormHelper *gui = new FormHelper(this);
     ref<Window> nanoguiWindow = gui->addWindow(Eigen::Vector2i(10, 10), "Actions");
     gui->addGroup("Tracer");
@@ -33,7 +34,9 @@ void GUI::init(GLFWwindow *window) {
     // https://stackoverflow.com/questions/28283724/use-a-member-function-as-callback
     glfwSetWindowUserPointer(window, this);
     glfwSetCursorPosCallback(window, [](GLFWwindow * window, double x, double y) {
+        // Appeler a chaque fois que la souris change de position
         static_cast<GUI*>(glfwGetWindowUserPointer(window))->cursorPosCallbackEvent(x, y);
+        // Sauvegarde de la position de la souris
         myenv.mouse[0] = (float)x;
         myenv.mouse[1] = (float)y;
     });
@@ -43,12 +46,13 @@ void GUI::init(GLFWwindow *window) {
         if (!inWidget && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
             std::cout << "Mouse pos: (" << myenv.mouse[0] << ", " << myenv.mouse[1] << ")" << std::endl;
             std::cout << "Click Left!" << std::endl;
-            float xClip = ((myenv.mouse[0] + 0.5f) / myenv.width) * 2.0f - 1.0f;
-            float yClip = 1.0f - ((myenv.mouse[1] + 0.5f) / myenv.height) * 2.0f;
+            // Convertion Local-to-World [0,width] -> [-1,1] et [0,height] -> [-1,1]
+            float xGL = ((myenv.mouse[0] + 0.5f) / myenv.width) * 2.0f - 1.0f;
+            float yGL = 1.0f - ((myenv.mouse[1] + 0.5f) / myenv.height) * 2.0f;
             if (myenv.mode == myenv.Mode::polygone) {
-                myenv.p.addVertex({ xClip, yClip });
+                myenv.p.addVertex({ xGL, yGL });
             } else if (myenv.mode == myenv.Mode::fenetre) {
-                myenv.f.addVertex({ xClip, yClip });
+                myenv.f.addVertex({ xGL, yGL });
             }
         }
     });
