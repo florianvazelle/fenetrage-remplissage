@@ -2,13 +2,15 @@
 #define GUI_H
 
 #include <nanogui/nanogui.h>
-#include "env.h"
+#include "Env.h"
 
 class GUI : public nanogui::Screen {
-  public:
-    GUI() : nanogui::Screen() {};
-    void init(GLFWwindow *window);
-    void draw();
+	private:
+		Env* env;
+	public:
+		GUI(Env* e) : nanogui::Screen() { env = e };
+		void init(GLFWwindow *window);
+		void draw();
 };
 
 #endif

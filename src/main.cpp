@@ -19,12 +19,12 @@
 
 #include <iostream>
 
-#include "GUI.h"
+#include "Env.h"
 #include "GLShader.h"
 
 GLShader g_BasicShader;
 
-void Initialize() {
+void Initialize(Env &environment) {
 #if defined(NANOGUI_GLAD)
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
         throw std::runtime_error("Could not initialize GLAD!");
@@ -45,17 +45,17 @@ void Initialize() {
     g_BasicShader.LoadFragmentShader("./resources/shaders/Basic.fs");
     g_BasicShader.Create();
 
-    myenv.p.init();
-    myenv.f.init();
+    environment.polygon.init();
+    environment.window.init();
 }
 
-void Shutdown() {
-    myenv.p.destroy();
-    myenv.f.destroy();
+void Shutdown(Env &environment) {
+    environment.polygon.destroy();
+    environment.window.destroy();
     g_BasicShader.Destroy();
 }
 
-void Display(GLFWwindow* window){
+void Display(GLFWwindow* window, Env &environment){
     int width, height;
     
     glfwGetWindowSize(window, &width, &height);
@@ -68,13 +68,13 @@ void Display(GLFWwindow* window){
     auto basic = g_BasicShader.GetProgram();
     glUseProgram(basic);
 
-    myenv.width = width;
-    myenv.height = height;
+    environment.width = width;
+    environment.height = height;
 
-    if (myenv.f.size() == 2) myenv.f.setColor(myenv.currentColor);
-    if (myenv.p.size() == 2) myenv.p.setColor(myenv.currentColor);
-    myenv.f.draw(width, height, basic, (myenv.mode == myenv.Mode::fenetre), myenv.mouse);
-    myenv.p.draw(width, height, basic, (myenv.mode == myenv.Mode::polygone), myenv.mouse);
+    if (environment.window.size() == 2) environment.window.setColor(environment.currentColor);
+    if (environment.polygon.size() == 2) environment.polygon.setColor(environment.currentColor);
+    environment.window.draw(width, height, basic, (environment.mode == environment.Mode::edit_Window_mode), environment.mouse);
+    environment.polygon.draw(width, height, basic, (environment.mode == environment.Mode::edit_Polygon_mode), environment.mouse);
 }
 
 int main(void) {
@@ -88,22 +88,22 @@ int main(void) {
         return -1;
     }
 
-    nanogui::ref<GUI> app = new GUI();
+	Env environment;
 
     glfwMakeContextCurrent(window);
-    Initialize();
-    app->init(window);
+    Initialize(environment);
+	environment.app->init(window, environment);
 
     while (!glfwWindowShouldClose(window)) {
       glfwPollEvents();
 
-      Display(window);
-      app->draw();
+      Display(window, environment);
+	  environment.app->draw();
 
       glfwSwapBuffers(window);
     }
 
-    Shutdown();
+    Shutdown(environment);
     glfwTerminate();
     return 0;
 }
