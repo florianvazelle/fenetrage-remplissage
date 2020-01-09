@@ -56,7 +56,7 @@ void Shutdown() {
 }
 
 void Display(GLFWwindow* window){
-    glfwGetWindowSize(window, &myenv.width, &myenv.width);
+    glfwGetWindowSize(window, &myenv.width, &myenv.height);
 
     glClearColor(0.f, 0.f, 0.5f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -66,8 +66,8 @@ void Display(GLFWwindow* window){
     auto basic = g_BasicShader.GetProgram();
     glUseProgram(basic);
 
-    if (myenv.f.size() == 2) myenv.f.setColor(myenv.currentColor);
-    if (myenv.p.size() == 2) myenv.p.setColor(myenv.currentColor);
+    if (myenv.f.size() == 1) myenv.f.setColor(myenv.currentColor);
+    if (myenv.p.size() == 1) myenv.p.setColor(myenv.currentColor);
     myenv.f.draw(myenv.width, myenv.height, basic, (myenv.mode == myenv.Mode::fenetre), myenv.mouse);
     myenv.p.draw(myenv.width, myenv.height, basic, (myenv.mode == myenv.Mode::polygone), myenv.mouse);
 }
