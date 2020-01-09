@@ -12,13 +12,13 @@ void GUI::init(GLFWwindow *window) {
     ref<Window> nanoguiWindow = gui->addWindow(Eigen::Vector2i(10, 10), "Actions");
     gui->addGroup("Tracer");
 
-    Button* btn_noop = gui->addButton("Noop", []() { std::cout << "Button pressed." << std::endl; myenv.changeMode(myenv.Mode::noop); });
+    Button* btn_noop = gui->addButton("Aucune operation", []() { std::cout << "Button pressed." << std::endl; myenv.changeMode(myenv.Mode::no_Operation_mode); });
     btn_noop->setFlags(Button::RadioButton);
     btn_noop->setTooltip("Rien ne se passe");
     btn_noop->setPushed(true);
 
-    gui->addButton("Polygone", []() { std::cout << "Button pressed." << std::endl; myenv.changeMode(myenv.Mode::polygone); })->setFlags(Button::RadioButton);
-    gui->addButton("Fenetre", []() { std::cout << "Button pressed." << std::endl; myenv.changeMode(myenv.Mode::fenetre); })->setFlags(Button::RadioButton);
+    gui->addButton("Polygone", []() { std::cout << "Button pressed." << std::endl; myenv.changeMode(myenv.Mode::edit_Polygon_mode); })->setFlags(Button::RadioButton);
+    gui->addButton("Fenetre", []() { std::cout << "Button pressed." << std::endl; myenv.changeMode(myenv.Mode::edit_Window_mode); })->setFlags(Button::RadioButton);
     
     auto cp = new ColorPicker(nanoguiWindow, { 255, 255, 0, 255 });
     cp->setFinalCallback([&](const Color& c) { myenv.currentColor = c; });
@@ -49,10 +49,10 @@ void GUI::init(GLFWwindow *window) {
             // Convertion Local-to-World [0,width] -> [-1,1] et [0,height] -> [-1,1]
             float xGL = ((myenv.mouse[0] + 0.5f) / myenv.width) * 2.0f - 1.0f;
             float yGL = 1.0f - ((myenv.mouse[1] + 0.5f) / myenv.height) * 2.0f;
-            if (myenv.mode == myenv.Mode::polygone) {
-                myenv.p.addVertex({ xGL, yGL });
-            } else if (myenv.mode == myenv.Mode::fenetre) {
-                myenv.f.addVertex({ xGL, yGL });
+            if (myenv.mode == myenv.Mode::edit_Polygon_mode) {
+                myenv.polygon.addVertex({ xGL, yGL });
+            } else if (myenv.mode == myenv.Mode::edit_Window_mode) {
+                myenv.cutWindow.addVertex({ xGL, yGL });
             }
         }
     });
