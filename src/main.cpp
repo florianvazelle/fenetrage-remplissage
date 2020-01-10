@@ -22,9 +22,10 @@
 #include "GUI.h"
 #include "GLShader.h"
 
+nanogui::ref<GUI> app;
 GLShader g_BasicShader;
 
-void Initialize() {
+void Initialize(GLFWwindow* window) {
 #if defined(NANOGUI_GLAD)
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
         throw std::runtime_error("Could not initialize GLAD!");
@@ -45,36 +46,30 @@ void Initialize() {
     g_BasicShader.LoadFragmentShader("./resources/shaders/Basic.fs");
     g_BasicShader.Create();
 
-    myenv.p.init();
-    myenv.f.init();
+    app->init(window);
 }
 
 void Shutdown() {
-    myenv.p.destroy();
-    myenv.f.destroy();
+    app->destroy();
     g_BasicShader.Destroy();
 }
 
 void Display(GLFWwindow* window){
     int width, height;
-    
     glfwGetWindowSize(window, &width, &height);
 
-    glClearColor(0.f, 0.f, 0.5f, 1.f);
+    glClearColor(0.5f, 0.5f, 0.5f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glViewport(0, 0, width, height);
 
+    app->setWidth(width);
+    app->setHeight(height);
+
     auto basic = g_BasicShader.GetProgram();
     glUseProgram(basic);
 
-    myenv.width = width;
-    myenv.height = height;
-
-    if (myenv.f.size() == 2) myenv.f.setColor(myenv.currentColor);
-    if (myenv.p.size() == 2) myenv.p.setColor(myenv.currentColor);
-    myenv.f.draw(width, height, basic, (myenv.mode == myenv.Mode::fenetre), myenv.mouse);
-    myenv.p.draw(width, height, basic, (myenv.mode == myenv.Mode::polygone), myenv.mouse);
+    app->draw(basic);
 }
 
 int main(void) {
@@ -88,17 +83,16 @@ int main(void) {
         return -1;
     }
 
-    nanogui::ref<GUI> app = new GUI();
+    app = new GUI();
 
     glfwMakeContextCurrent(window);
-    Initialize();
-    app->init(window);
+    Initialize(window);
 
+    // Boucle principale infinie
     while (!glfwWindowShouldClose(window)) {
       glfwPollEvents();
 
       Display(window);
-      app->draw();
 
       glfwSwapBuffers(window);
     }

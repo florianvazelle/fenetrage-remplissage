@@ -6,16 +6,18 @@
 
 class Mesh {
 private:
-	std::vector<Eigen::Vector2f> mesh;
-	nanogui::Color color;
 	GLuint _vbo;
+	nanogui::Color color;
+	std::vector<Eigen::Vector2f> mesh;
 
 public:
 	void addVertex(Eigen::Vector2f vec);
-
-	void init(void);
-    void destroy(void);
+	Eigen::Vector2f getVertex(int indice);
+	void setVertex(int indice, float x, float y);
+	void init();
     void draw(int width, int height, uint32_t shader, bool includeMouse, Eigen::Vector2f mouse);
+	bool contain(float x, float y);
+	void destroy(void);
 	
 	size_t size() const { return mesh.size(); };
 	void setColor(nanogui::Color c);

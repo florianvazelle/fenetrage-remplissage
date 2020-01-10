@@ -3,10 +3,10 @@
 Mat4::Mat4() {
     for (int i = 0; i < 16; i++) {
         if (i % 5 == 0) {
-            this->data[i] = 1.0f;
+            data[i] = 1.0f;
         }
         else {
-            this->data[i] = 0.0f;
+            data[i] = 0.0f;
         }
     }
 }
@@ -25,7 +25,7 @@ Mat4 Mat4::operator*(const Mat4& m) {
 Mat4 Mat4::operator*=(const Mat4& m) {
     Mat4 tmp(*this);
     Mat4 res = Mat4();
-    int sum;
+    float sum;
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             sum = 0;
