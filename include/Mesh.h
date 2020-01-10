@@ -12,9 +12,11 @@ private:
 
 public:
 	void addVertex(Eigen::Vector2f vec);
-
+	Eigen::Vector2f getVertex(int indice);
+	void setVertex(int indice, float x, float y);
 	void init();
     void draw(int width, int height, uint32_t shader, bool includeMouse, Eigen::Vector2f mouse);
+	bool contain(float x, float y);
 	void destroy(void);
 	
 	size_t size() const { return mesh.size(); };
