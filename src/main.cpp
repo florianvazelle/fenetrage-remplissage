@@ -58,7 +58,7 @@ void Display(GLFWwindow* window){
     int width, height;
     glfwGetWindowSize(window, &width, &height);
 
-    glClearColor(0.f, 0.f, 0.5f, 1.f);
+    glClearColor(0.5f, 0.5f, 0.5f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glViewport(0, 0, width, height);

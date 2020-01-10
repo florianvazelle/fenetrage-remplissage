@@ -90,9 +90,9 @@ void GUI::defineCallbacks(GLFWwindow* window) {
 		float yGL = 1.0f - ((gui->mouse[1] + 0.5f) / gui->height) * 2.0f;
 
 		if (gui->wantToEditPolygon == TRUE) {
-			if (gui->indicePolygonToModify == 0 || gui->indicePolygonToModify == 4) {
+			if (gui->indicePolygonToModify == 0 || gui->indicePolygonToModify == gui->polygon.size() - 1) {
 				gui->polygon.setVertex(0, xGL, yGL);
-				gui->polygon.setVertex(4, xGL, yGL);
+				gui->polygon.setVertex(gui->polygon.size() - 1, xGL, yGL);
 			} else {
 				gui->polygon.setVertex(gui->indicePolygonToModify, xGL, yGL);
 			}
