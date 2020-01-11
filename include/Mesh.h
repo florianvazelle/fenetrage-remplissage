@@ -13,7 +13,7 @@ protected:
 public:
 	void addVertex(Eigen::Vector2f vec);
 	Eigen::Vector2f getVertex(int indice);
-	void setVertex(int indice, float x, float y);
+	void setVertex(int indice, Eigen::Vector2f vec);
 
 	void init();
     void draw(int width, int height, uint32_t shader, bool includeMouse, Eigen::Vector2f mouse);

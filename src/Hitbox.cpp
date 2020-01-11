@@ -8,13 +8,13 @@ Hitbox::Hitbox() {
 }
 
 bool Hitbox::contain(float x, float y) {
-	return ((x >= this->mesh[0][0]) && (y >= this->mesh[0][1]) &&
-		(x <= this->mesh[2][0]) && (y <= this->mesh[2][1]));
+	return ((x >= this->mesh[0][0]) && (y >= this->mesh[0][1]) && (x <= this->mesh[2][0]) && (y <= this->mesh[2][1]));
 }
 
-void Hitbox::draw(uint32_t shader) {
+void Hitbox::draw(uint32_t shader, Eigen::Vector2f mouse) {
     // Si il y a des sommets
-    if (mesh.size() > 0) {
+    if (mesh.size() > 0 /* && contain(mouse[0], mouse[1]) */) {
+
         // On bind le vbo pour le modifier
         glBindBuffer(GL_ARRAY_BUFFER, _vbo);
         glBufferData(GL_ARRAY_BUFFER, mesh.size() * sizeof(Eigen::Vector2f), &mesh[0], GL_DYNAMIC_DRAW);

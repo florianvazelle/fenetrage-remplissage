@@ -1,6 +1,8 @@
 #include <nanogui/nanogui.h>
 #include "GUI.h"
 
+float margin = 0.03f;
+
 GUI::GUI() : nanogui::Screen() {
     mode = Mode::no_Operation_mode;
     width = 640;
@@ -52,7 +54,7 @@ void GUI::draw(uint32_t shader) {
 
     // Draw Hitbox
 	for (Hitbox i : polygonHitboxes)
-		i.draw(shader);
+		i.draw(shader, mouse);
 
     // draw de nanoGUI
     drawContents();
@@ -83,26 +85,24 @@ void GUI::defineCallbacks(GLFWwindow* window) {
         // Appeler a chaque fois que la souris change de position
         gui->cursorPosCallbackEvent(x, y);
 
-        // Sauvegarde de la position de la souris
-        gui->mouse[0] = (float)x;
-        gui->mouse[1] = (float)y;
+        Eigen::Vector2f coordGL = gui->local2world(x, y);
 
-		// Convertion Local-to-World [0,width] -> [-1,1] et [0,height] -> [-1,1]
-		float xGL = ((x + 0.5f) / gui->width) * 2.0f - 1.0f;
-		float yGL = 1.0f - ((y + 0.5f) / gui->height) * 2.0f;
+        // Sauvegarde de la position de la souris
+        gui->mouse[0] = coordGL[0];
+        gui->mouse[1] = coordGL[1];
 
 		if (gui->wantToEditPolygon == true) {
 			if (gui->indicePolygonToModify == 0 || gui->indicePolygonToModify == gui->polygon.size() - 1) {
-				gui->polygon.setVertex(0, xGL, yGL);
-				gui->polygon.setVertex(gui->polygon.size() - 1, xGL, yGL);
+				gui->polygon.setVertex(0, coordGL);
+				gui->polygon.setVertex(gui->polygon.size() - 1, coordGL);
 			} else {
-				gui->polygon.setVertex(gui->indicePolygonToModify, xGL, yGL);
+				gui->polygon.setVertex(gui->indicePolygonToModify, coordGL);
 			}
 
-			gui->polygonHitboxes[gui->indicePolygonToModify].setVertex(0, xGL - 0.03, yGL - 0.03);
-			gui->polygonHitboxes[gui->indicePolygonToModify].setVertex(1, xGL - 0.03, yGL + 0.03);
-			gui->polygonHitboxes[gui->indicePolygonToModify].setVertex(2, xGL + 0.03, yGL + 0.03);
-			gui->polygonHitboxes[gui->indicePolygonToModify].setVertex(3, xGL + 0.03, yGL - 0.03);
+            gui->polygonHitboxes[gui->indicePolygonToModify].setVertex(0, { coordGL[0] - margin, coordGL[1] - margin });
+            gui->polygonHitboxes[gui->indicePolygonToModify].setVertex(1, { coordGL[0] - margin, coordGL[1] + margin });
+            gui->polygonHitboxes[gui->indicePolygonToModify].setVertex(2, { coordGL[0] + margin, coordGL[1] + margin });
+            gui->polygonHitboxes[gui->indicePolygonToModify].setVertex(3, { coordGL[0] + margin, coordGL[1] - margin });
 		}
     });
 
@@ -113,9 +113,7 @@ void GUI::defineCallbacks(GLFWwindow* window) {
         bool inWidget = gui->mouseButtonCallbackEvent(button, action, modifiers);
         if (!inWidget && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 
-            // Convertion Local-to-World [0,width] -> [-1,1] et [0,height] -> [-1,1]
-            float xGL = ((gui->mouse[0] + 0.5f) / gui->width) * 2.0f - 1.0f;
-            float yGL = 1.0f - ((gui->mouse[1] + 0.5f) / gui->height) * 2.0f;
+            Eigen::Vector2f coordGL = gui->mouse;
 
             // En fonction du mode, on va ajoute le sommets dans le mesh correspondant
             if (gui->mode == Mode::edit_Polygon_mode) {
@@ -125,7 +123,7 @@ void GUI::defineCallbacks(GLFWwindow* window) {
                 // Regarde si le click s'effectue dans une hitbox
                 for (indiceHitBox = 0; indiceHitBox < gui->polygonHitboxes.size(); indiceHitBox++) {
                     Hitbox currentHitbox = gui->polygonHitboxes[indiceHitBox];
-                    if (currentHitbox.contain(xGL, yGL)) {
+                    if (currentHitbox.contain(coordGL[0], coordGL[1])) {
                         insideHitBox = true;
                         break;
                     }
@@ -133,23 +131,23 @@ void GUI::defineCallbacks(GLFWwindow* window) {
 
 				if (insideHitBox) {
                     // Si oui, on ferme le mesh
-					gui->polygon.addVertex( gui->polygon.getVertex(0) );
+					gui->polygon.addVertex(gui->polygon.getVertex(0));
 					gui->mode = Mode::no_Operation_mode;
 				} else {
                     // Sinon, comportement normal
                     // On ajoute le point au mesh et sa hitbox correspondante
-					gui->polygon.addVertex({ xGL, yGL });
+					gui->polygon.addVertex(coordGL);
 
 					Hitbox hitBox;
 					hitBox.init();
-					hitBox.addVertex({ xGL - 0.03, yGL - 0.03 });
-					hitBox.addVertex({ xGL - 0.03, yGL + 0.03 });
-					hitBox.addVertex({ xGL + 0.03, yGL + 0.03 });
-					hitBox.addVertex({ xGL + 0.03, yGL - 0.03 });
+                    hitBox.addVertex({ coordGL[0] - margin, coordGL[1] - margin });
+                    hitBox.addVertex({ coordGL[0] - margin, coordGL[1] + margin });
+                    hitBox.addVertex({ coordGL[0] + margin, coordGL[1] + margin });
+                    hitBox.addVertex({ coordGL[0] + margin, coordGL[1] - margin });
 					gui->polygonHitboxes.push_back(hitBox);
 				}
             } else if (gui->mode == Mode::edit_Window_mode) {
-                gui->cutWindow.addVertex({ xGL, yGL });
+                gui->cutWindow.addVertex(coordGL);
 			} else if (gui->mode == Mode::no_Operation_mode) {
 				bool insideHitBox = false;
 				int indiceHitBox = 0;
@@ -157,7 +155,7 @@ void GUI::defineCallbacks(GLFWwindow* window) {
                 // Regarde si le click s'effectue dans une hitbox
                 for (indiceHitBox = 0; indiceHitBox < gui->polygonHitboxes.size(); indiceHitBox++) {
                     Hitbox currentHitbox = gui->polygonHitboxes[indiceHitBox];
-                    if (currentHitbox.contain(xGL, yGL)) {
+                    if (currentHitbox.contain(coordGL[0], coordGL[1])) {
                         insideHitBox = true;
                         break;
                     }

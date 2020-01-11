@@ -9,9 +9,9 @@ Eigen::Vector2f Mesh::getVertex(int indice) {
 	return mesh[indice];
 }
 
-void Mesh::setVertex(int indice, float x, float y) {
-	mesh[indice][0] = x;
-	mesh[indice][1] = y;
+void Mesh::setVertex(int indice, Eigen::Vector2f vec) {
+	mesh[indice][0] = vec[0];
+	mesh[indice][1] = vec[1];
 }
 
 void Mesh::init() {
@@ -30,9 +30,7 @@ void Mesh::draw(int width, int height, uint32_t shader, bool includeMouse, Eigen
 
         // Si on est entrain de dessinee le mesh, on ajoute la coordonnee de la souris a la liste des sommets
         if (includeMouse) {
-            float xClip = ((mouse[0] + 0.5f) / width) * 2.0f - 1.0f;
-            float yClip = 1.0f - ((mouse[1] + 0.5f) / height) * 2.0f;
-            tmp.push_back({ xClip, yClip });
+            tmp.push_back(mouse);
         }
 
         // On bind le vbo pour le modifier
