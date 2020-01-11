@@ -17,20 +17,15 @@
 #include <nanogui/opengl.h>
 #include <GLFW/glfw3.h>
 
-#include <math.h>
 #include <iostream>
-#include <algorithm>
 
 #include "GUI.h"
 #include "GLShader.h"
-#include "GLTexture.h"
-#include "Mat4.h"
-#include "Mesh.h"
 
+nanogui::ref<GUI> app;
 GLShader g_BasicShader;
-Mesh fenetre;
 
-void Initialize() {
+void Initialize(GLFWwindow* window) {
 #if defined(NANOGUI_GLAD)
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
         throw std::runtime_error("Could not initialize GLAD!");
@@ -50,24 +45,31 @@ void Initialize() {
     g_BasicShader.LoadVertexShader("./resources/shaders/Basic.vs");
     g_BasicShader.LoadFragmentShader("./resources/shaders/Basic.fs");
     g_BasicShader.Create();
+
+    app->init(window);
 }
 
 void Shutdown() {
+    app->destroy();
     g_BasicShader.Destroy();
 }
 
 void Display(GLFWwindow* window){
     int width, height;
-    
     glfwGetWindowSize(window, &width, &height);
 
-    glClearColor(0.f, 0.f, 0.5f, 1.f);
+    glClearColor(0.5f, 0.5f, 0.5f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glViewport(0, 0, width, height);
 
+    app->setWidth(width);
+    app->setHeight(height);
+
     auto basic = g_BasicShader.GetProgram();
     glUseProgram(basic);
+
+    app->draw(basic);
 }
 
 int main(void) {
@@ -81,17 +83,16 @@ int main(void) {
         return -1;
     }
 
-    nanogui::ref<GUI> app = new GUI();
+    app = new GUI();
 
     glfwMakeContextCurrent(window);
-    Initialize();
-    app->init(window);
+    Initialize(window);
 
+    // Boucle principale infinie
     while (!glfwWindowShouldClose(window)) {
       glfwPollEvents();
 
       Display(window);
-      app->draw();
 
       glfwSwapBuffers(window);
     }
