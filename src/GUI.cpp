@@ -16,25 +16,57 @@ void GUI::init(GLFWwindow *window) {
     using namespace nanogui;
     initialize(window, true);
 
-    FormHelper *gui = new FormHelper(this);
-    ref<Window> nanoguiWindow = gui->addWindow(Eigen::Vector2i(10, 10), "Actions");
-    gui->addGroup("Tracer");
+    Window* w = new Window(this, "Actions");
+    w->setPosition(Vector2i(10, 10));
+    w->setLayout(new GroupLayout());
 
-    Button* btn_noop = gui->addButton("Aucune operation", [&]() { changeMode(Mode::no_Operation_mode); });
-    btn_noop->setFlags(Button::RadioButton);
-    btn_noop->setTooltip("Rien ne se passe");
-    btn_noop->setPushed(true);
+    /* Premiere partie */
 
-    gui->addButton("Polygone", [&]() { changeMode(Mode::edit_Polygon_mode); })->setFlags(Button::RadioButton);
-    gui->addButton("Fenetre", [&]() { changeMode(Mode::edit_Window_mode); })->setFlags(Button::RadioButton);
-    
-    auto cp = new ColorPicker(nanoguiWindow, { 255, 0, 0, 255 });
+    new Label(w, "Tracer", "sans-bold", 25);
+
+    GridLayout* layout = new GridLayout(Orientation::Horizontal, 2, Alignment::Fill, 0, 5);
+
+    Widget* tools = new Widget(w);
+    tools->setLayout(layout);
+
+    Button* b = new Button(tools, "No operation");
+    b->setCallback([&] { changeMode(Mode::no_Operation_mode); });
+    b->setFlags(Button::RadioButton);
+    b->setPushed(true);
+
+    b = new Button(tools, "");
+    b->setCallback([&] { changeMode(Mode::no_Operation_mode); });
+    b->setIcon(ENTYPO_ICON_MOUSE_POINTER);
+    b->setFlags(Button::RadioButton);
+
+    b = new Button(tools, "Polygone");
+    b->setCallback([&] { changeMode(Mode::edit_Polygon_mode); });
+    b->setFlags(Button::RadioButton);
+
+    b = new Button(tools, "");
+    b->setIcon(ENTYPO_ICON_TRASH);
+    b->setCallback([&] { polygon.clear(); polygonHitboxes.clear(); });
+
+    b = new Button(tools, "Fenetre");
+    b->setCallback([&] { changeMode(Mode::edit_Window_mode); });
+    b->setFlags(Button::RadioButton);
+
+    b = new Button(tools, "");
+    b->setIcon(ENTYPO_ICON_TRASH);
+    b->setCallback([&] { cutWindow.clear(); });
+
+    auto cp = new ColorPicker(tools, { 255, 0, 0, 255 });
     cp->setFinalCallback([&](const Color& c) { currentColor = c; });
-    gui->addWidget("", cp);
 
-    gui->addGroup("Effectuer");
-    gui->addButton("Fenetrage", []() { std::cout << "Fenetrage" << std::endl; });
-    gui->addButton("Remplissage", []() { std::cout << "Remplissage" << std::endl; });
+    /* Seconde partie */
+
+    new Label(w, "Effectuer", "sans-bold", 25);
+
+    b = new Button(w, "Fenetrage");
+    b->setCallback([&] { std::cout << "Fenetrage" << std::endl; });
+
+    b = new Button(w, "Remplissage");
+    b->setCallback([&] { std::cout << "Remplissage" << std::endl; });
 
     setVisible(true);
     performLayout();
@@ -132,7 +164,6 @@ void GUI::defineCallbacks(GLFWwindow* window) {
 				if (insideHitBox) {
                     // Si oui, on ferme le mesh
 					gui->polygon.addVertex(gui->polygon.getVertex(0));
-					gui->mode = Mode::no_Operation_mode;
 				} else {
                     // Sinon, comportement normal
                     // On ajoute le point au mesh et sa hitbox correspondante

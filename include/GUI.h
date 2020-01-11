@@ -14,14 +14,15 @@ class GUI : public nanogui::Screen {
 
 		Eigen::Vector2f mouse;
 		Mesh polygon, cutWindow;
+		std::vector<Mesh> polygons;
 		std::vector<Hitbox> polygonHitboxes;
 
 		nanogui::Color currentColor;
 
-	public:
 		bool wantToEditPolygon = false;
 		int indicePolygonToModify = 0;
 
+	public:
 		GUI();
 
 		void init(GLFWwindow* window);

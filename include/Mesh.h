@@ -20,6 +20,7 @@ public:
 	void destroy(void);
 	
 	size_t size() const { return mesh.size(); };
+	void clear() { mesh.clear(); };
 	void setColor(nanogui::Color c);
 };
 
