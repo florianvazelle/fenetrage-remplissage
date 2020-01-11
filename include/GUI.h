@@ -18,7 +18,7 @@ class GUI : public nanogui::Screen {
 		nanogui::Color currentColor;
 
 		bool wantToEditPolygon = false;
-		std::vector<Point>::const_iterator indicePointToModify;
+		const_iterator_point indicePointToModify;
 
 	public:
 		GUI();

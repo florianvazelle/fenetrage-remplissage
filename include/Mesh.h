@@ -5,6 +5,8 @@
 #include <nanogui/nanogui.h>
 #include "Point.h"
 
+typedef std::vector<Point>::const_iterator const_iterator_point;
+
 class Mesh {
 private:
 	GLuint _vbo;
@@ -17,9 +19,9 @@ public:
     void draw(int width, int height, uint32_t shader, bool includeMouse, Eigen::Vector2f mouse);
     void destroy();
 
-    std::vector<Point>::const_iterator Mesh::contain(float x, float y) const;
-    bool isValid(std::vector<Point>::const_iterator it) const;
-    void move(std::vector<Point>::const_iterator it, Eigen::Vector2f coordGL);
+    const_iterator_point contain(float x, float y) const;
+    bool isValid(const_iterator_point it) const;
+    void move(const_iterator_point it, Eigen::Vector2f coordGL);
 
     void setColor(nanogui::Color c) { color = c; }
     void addVertex(Eigen::Vector2f vec) { mesh.push_back(Point(vec)); };

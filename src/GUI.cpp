@@ -131,7 +131,7 @@ void GUI::defineCallbacks(GLFWwindow* window) {
 
             // En fonction du mode, on va ajoute le sommets dans le mesh correspondant
             if (gui->mode == Mode::edit_Polygon_mode) {
-                std::vector<Point>::const_iterator pointInsideHitBox = gui->polygon.contain(coordGL[0], coordGL[1]);
+                const_iterator_point pointInsideHitBox = gui->polygon.contain(coordGL[0], coordGL[1]);
 
 				if (gui->polygon.isValid(pointInsideHitBox)) {
                     // Si oui, on ferme le mesh
@@ -144,7 +144,7 @@ void GUI::defineCallbacks(GLFWwindow* window) {
             } else if (gui->mode == Mode::edit_Window_mode) {
                 gui->cutWindow.addVertex(coordGL);
 			} else if (gui->mode == Mode::no_Operation_mode) {
-                std::vector<Point>::const_iterator pointInsideHitBox = gui->polygon.contain(coordGL[0], coordGL[1]);
+                const_iterator_point pointInsideHitBox = gui->polygon.contain(coordGL[0], coordGL[1]);
 
 				if (gui->polygon.isValid(pointInsideHitBox)) {
                     // Si le click est dans une hitbox
