@@ -18,7 +18,7 @@ class GUI : public nanogui::Screen {
 		nanogui::Color currentColor;
 
 	public:
-		bool wantToEditPolygon = FALSE;
+		bool wantToEditPolygon = false;
 		int indicePolygonToModify = 0;
 
 		GUI();

@@ -51,7 +51,7 @@ void GUI::draw(uint32_t shader) {
     polygon.draw(width, height, shader, (mode == Mode::edit_Polygon_mode), mouse);
 
 	for (Mesh i : polygonHitboxes)
-		i.draw(width, height, shader, FALSE, mouse);
+		i.draw(width, height, shader, false, mouse);
     // draw de nanoGUI
     drawContents();
     drawWidgets();
@@ -89,7 +89,7 @@ void GUI::defineCallbacks(GLFWwindow* window) {
 		float xGL = ((gui->mouse[0] + 0.5f) / gui->width) * 2.0f - 1.0f;
 		float yGL = 1.0f - ((gui->mouse[1] + 0.5f) / gui->height) * 2.0f;
 
-		if (gui->wantToEditPolygon == TRUE) {
+		if (gui->wantToEditPolygon == true) {
 			if (gui->indicePolygonToModify == 0 || gui->indicePolygonToModify == gui->polygon.size() - 1) {
 				gui->polygon.setVertex(0, xGL, yGL);
 				gui->polygon.setVertex(gui->polygon.size() - 1, xGL, yGL);
@@ -117,11 +117,11 @@ void GUI::defineCallbacks(GLFWwindow* window) {
 
             // En fonction du mode, on va ajoute le sommets dans le mesh correspondant
             if (gui->mode == Mode::edit_Polygon_mode) {
-				bool insideHitBox = FALSE;
+				bool insideHitBox = false;
 				int indiceHitBox = 0;
 				for (Mesh i : gui->polygonHitboxes) {
 					if (i.contain(xGL, yGL)) {
-						insideHitBox = TRUE;
+						insideHitBox = true;
 					}
 					indiceHitBox += 1;
 				}
@@ -147,24 +147,24 @@ void GUI::defineCallbacks(GLFWwindow* window) {
             } else if (gui->mode == Mode::edit_Window_mode) {
                 gui->cutWindow.addVertex({ xGL, yGL });
 			} else if (gui->mode == Mode::no_Operation_mode) {
-				bool insideHitBox = FALSE;
+				bool insideHitBox = false;
 				int indiceHitBox = 0;
 				for (Mesh i : gui->polygonHitboxes) {
 					if (i.contain(xGL, yGL)) {
-						insideHitBox = TRUE;
+						insideHitBox = true;
 						break;
 					}
 					indiceHitBox += 1;
 				}
 				if (insideHitBox)
 				{
-					if (gui->wantToEditPolygon == FALSE) {
+					if (gui->wantToEditPolygon == false) {
 						std::cout << indiceHitBox << std::endl;
-						gui->wantToEditPolygon = TRUE;
+						gui->wantToEditPolygon = true;
 						gui->indicePolygonToModify = indiceHitBox;
 					}
 					else {
-						gui->wantToEditPolygon = FALSE;
+						gui->wantToEditPolygon = false;
 					}
 				}
 			}
