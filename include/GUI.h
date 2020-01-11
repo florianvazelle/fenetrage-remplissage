@@ -3,7 +3,7 @@
 
 #include <nanogui/nanogui.h>
 #include "Mesh.h"
-#include "Hitbox.h"
+#include "Point.h"
 
 class GUI : public nanogui::Screen {
 	private:
@@ -14,13 +14,11 @@ class GUI : public nanogui::Screen {
 
 		Eigen::Vector2f mouse;
 		Mesh polygon, cutWindow;
-		std::vector<Mesh> polygons;
-		std::vector<Hitbox> polygonHitboxes;
 
 		nanogui::Color currentColor;
 
 		bool wantToEditPolygon = false;
-		int indicePolygonToModify = 0;
+		std::vector<Point>::const_iterator indicePointToModify;
 
 	public:
 		GUI();
