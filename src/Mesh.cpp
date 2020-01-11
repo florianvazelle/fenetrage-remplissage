@@ -61,16 +61,6 @@ void Mesh::draw(int width, int height, uint32_t shader, bool includeMouse, Eigen
     }
 }
 
-bool Mesh::contain(float x, float y) {
-	if ((x >= this->mesh[0][0]) && (y >= this->mesh[0][1]) && 
-		(x <= this->mesh[2][0]) && (y <= this->mesh[2][1])) {
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-
 void Mesh::setColor(nanogui::Color c) {
     color = c;
 }

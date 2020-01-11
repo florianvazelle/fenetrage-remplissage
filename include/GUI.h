@@ -3,6 +3,7 @@
 
 #include <nanogui/nanogui.h>
 #include "Mesh.h"
+#include "Hitbox.h"
 
 class GUI : public nanogui::Screen {
 	private:
@@ -13,7 +14,7 @@ class GUI : public nanogui::Screen {
 
 		Eigen::Vector2f mouse;
 		Mesh polygon, cutWindow;
-		std::vector<Mesh> polygonHitboxes;
+		std::vector<Hitbox> polygonHitboxes;
 
 		nanogui::Color currentColor;
 
