@@ -13,12 +13,15 @@ class GUI : public nanogui::Screen {
 		int width, height;
 
 		Eigen::Vector2f mouse;
-		Mesh polygon, cutWindow;
+		
+		Mesh cutWindow;							// Fenetre
+		Mesh* polyToModify;						// Mesh que l'on va vouloir modifier
+		std::vector<Mesh> polygons;				// Liste de tout les polygones
 
 		nanogui::Color currentColor;
 
 		bool wantToEditPolygon = false;
-		const_iterator_point indicePointToModify;
+		iterator_point indicePointToModify;
 
 	public:
 		GUI();

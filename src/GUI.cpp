@@ -9,6 +9,8 @@ GUI::GUI() : nanogui::Screen() {
     height = 480;
     mouse = Eigen::Vector2f(0.0f, 0.0f);
     currentColor = nanogui::Color(Eigen::Vector4f(1.0f, 0.0f, 0.0f, 1.0f));
+
+    polyToModify = nullptr;
 };
 
 void GUI::init(GLFWwindow *window) {
@@ -44,7 +46,7 @@ void GUI::init(GLFWwindow *window) {
 
     b = new Button(tools, "");
     b->setIcon(ENTYPO_ICON_TRASH);
-    b->setCallback([&] { polygon.clear(); polygon.setClose(false); });
+    b->setCallback([&] { polygons.pop_back(); });
 
     b = new Button(tools, "Fenetre");
     b->setCallback([&] { changeMode(Mode::edit_Window_mode); });
@@ -52,7 +54,7 @@ void GUI::init(GLFWwindow *window) {
 
     b = new Button(tools, "");
     b->setIcon(ENTYPO_ICON_TRASH);
-    b->setCallback([&] { cutWindow.clear(); });
+    b->setCallback([&] { cutWindow.clear(); cutWindow.setClose(false); });
 
     auto cp = new ColorPicker(tools, { 255, 0, 0, 255 });
     cp->setFinalCallback([&](const Color& c) { currentColor = c; });
@@ -73,15 +75,15 @@ void GUI::init(GLFWwindow *window) {
     defineCallbacks(window);
 
     cutWindow.init();
-    polygon.init();
 }
 
 void GUI::draw(uint32_t shader) {
     if (cutWindow.size() == 1) cutWindow.setColor(currentColor);
-    if (polygon.size() == 1) polygon.setColor(currentColor);
+    if (polygons.size() > 0 && polygons.back().size() == 1) (&polygons.back())->setColor(currentColor);
 
     cutWindow.draw(width, height, shader, (mode == Mode::edit_Window_mode), mouse);
-    polygon.draw(width, height, shader, (mode == Mode::edit_Polygon_mode), mouse);
+    for (Mesh poly : polygons)
+        poly.draw(width, height, shader, (mode == Mode::edit_Polygon_mode), mouse);
 
     // draw de nanoGUI
     drawContents();
@@ -90,7 +92,8 @@ void GUI::draw(uint32_t shader) {
 
 void GUI::destroy() {
     cutWindow.destroy();
-    polygon.destroy();
+    for (Mesh poly : polygons)
+        poly.destroy();
 }
 
 void GUI::changeMode(Mode m) {
@@ -115,8 +118,8 @@ void GUI::defineCallbacks(GLFWwindow* window) {
         gui->mouse[0] = coordGL[0];
         gui->mouse[1] = coordGL[1];
 
-		if (gui->wantToEditPolygon == true) {
-            gui->polygon.move(gui->indicePointToModify, coordGL);
+		if (gui->wantToEditPolygon && gui->polyToModify != nullptr) {
+            gui->indicePointToModify->setPosition(coordGL);
 		}
     });
 
@@ -131,32 +134,67 @@ void GUI::defineCallbacks(GLFWwindow* window) {
 
             // En fonction du mode, on va ajoute le sommets dans le mesh correspondant
             if (gui->mode == Mode::edit_Polygon_mode) {
-                const_iterator_point pointInsideHitBox = gui->polygon.contain(coordGL[0], coordGL[1]);
+                if (gui->polygons.size() == 0 || gui->polygons.back().isClose()) {
+                    Mesh tmp;
+                    tmp.init();
+                    gui->polygons.push_back(tmp);
+                }
 
-				if (gui->polygon.isValid(pointInsideHitBox)) {
+                Mesh* currentPoly = &gui->polygons.back();
+                iterator_point pointInsideHitBox = currentPoly->contain(coordGL[0], coordGL[1]);
+
+				if (currentPoly->isValid(pointInsideHitBox)) {
                     // Si oui, on ferme le mesh
-					gui->polygon.setClose(true);
+                    currentPoly->setClose(true);
 				} else {
                     // Sinon, comportement normal
                     // On ajoute le point au mesh et sa hitbox correspondante
-					gui->polygon.addVertex(coordGL);
+                    currentPoly->addVertex(coordGL);
 				}
             } else if (gui->mode == Mode::edit_Window_mode) {
-                gui->cutWindow.addVertex(coordGL);
-			} else if (gui->mode == Mode::no_Operation_mode) {
-                const_iterator_point pointInsideHitBox = gui->polygon.contain(coordGL[0], coordGL[1]);
+                iterator_point pointInsideHitBox = gui->cutWindow.contain(coordGL[0], coordGL[1]);
 
-				if (gui->polygon.isValid(pointInsideHitBox)) {
+                if (gui->cutWindow.isValid(pointInsideHitBox)) {
+                    gui->cutWindow.setClose(true);
+                } else {
+                    gui->cutWindow.addVertex(coordGL);
+                }
+			} else if (gui->mode == Mode::no_Operation_mode) {
+                if (gui->wantToEditPolygon) {
+                    gui->wantToEditPolygon = false;
+                    gui->polyToModify = nullptr;
+                    return;
+                }
+
+                iterator_point pointInsideHitBox;
+
+                // On parcours tout les polygones
+                for (int i = 0; i < gui->polygons.size(); i++) {
+                    pointInsideHitBox = gui->polygons[i].contain(coordGL[0], coordGL[1]);
                     // Si le click est dans une hitbox
-					if (gui->wantToEditPolygon == false) {
+                    if (gui->polygons[i].isValid(pointInsideHitBox)) {
+                        if (!gui->wantToEditPolygon) {
+                            // On indique que l'on veut modifier un sommet du polygon 
+                            // et on indique le sommet
+                            gui->wantToEditPolygon = true;
+                            gui->polyToModify = &gui->polygons[i];
+                            gui->indicePointToModify = pointInsideHitBox;
+                        }
+                        break;
+                    }
+                }
+
+                // Pareil pour la fenetre
+                pointInsideHitBox = gui->cutWindow.contain(coordGL[0], coordGL[1]);
+                if (gui->cutWindow.isValid(pointInsideHitBox)) {
+                    if (!gui->wantToEditPolygon) {
                         // On indique que l'on veut modifier un sommet du polygon 
                         // et on indique le sommet
-						gui->wantToEditPolygon = true;
-						gui->indicePointToModify = pointInsideHitBox;
-					} else {
-						gui->wantToEditPolygon = false;
-					}
-				}
+                        gui->wantToEditPolygon = true;
+                        gui->polyToModify = &gui->cutWindow;
+                        gui->indicePointToModify = pointInsideHitBox;
+                    }
+                }
 			}
         }
     });

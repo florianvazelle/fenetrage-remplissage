@@ -51,8 +51,8 @@ void Mesh::draw(int width, int height, uint32_t shader, bool includeMouse, Eigen
     }
 }
 
-const_iterator_point Mesh::contain(float x, float y) const {
-    for (const_iterator_point p = mesh.begin(); p != mesh.end(); ++p) {
+iterator_point Mesh::contain(float x, float y) {
+    for (iterator_point p = mesh.begin(); p != mesh.end(); ++p) {
         if (p->contain(x, y)) {
             return p;
         }
@@ -60,16 +60,8 @@ const_iterator_point Mesh::contain(float x, float y) const {
     return mesh.end();
 }
 
-bool Mesh::isValid(const_iterator_point it) const {
+bool Mesh::isValid(iterator_point it) const {
     return it != mesh.end();
-}
-
-void Mesh::move(const_iterator_point it, Eigen::Vector2f coordGL) {
-    for (std::vector<Point>::iterator p = mesh.begin(); p != mesh.end(); ++p) {
-        if (it == p) {
-            p->setPosition(coordGL);
-        }
-    }
 }
 
 void Mesh::destroy() {

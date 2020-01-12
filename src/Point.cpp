@@ -3,11 +3,6 @@
 void Point::draw(uint32_t shader, Eigen::Vector2f mouse) {
     if (true /* && contain(mouse[0], mouse[1]) */) {
 
-        hitbox[0] = { position[0] - margin, position[1] - margin };
-        hitbox[1] = { position[0] - margin, position[1] + margin };
-        hitbox[2] = { position[0] + margin, position[1] + margin };
-        hitbox[3] = { position[0] + margin, position[1] - margin };
-
         glBindBuffer(GL_ARRAY_BUFFER, _vbo);
         glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(Eigen::Vector2f), &hitbox[0], GL_DYNAMIC_DRAW);
 
