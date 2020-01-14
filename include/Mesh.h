@@ -3,24 +3,33 @@
 
 #include <vector>
 #include <nanogui/nanogui.h>
+#include "Point.h"
+
+typedef std::vector<Point>::iterator iterator_point;
 
 class Mesh {
 private:
 	GLuint _vbo;
+	std::vector<Point> mesh;
 	nanogui::Color color;
-	std::vector<Eigen::Vector2f> mesh;
+    bool close = false;
 
 public:
-	void addVertex(Eigen::Vector2f vec);
-	Eigen::Vector2f getVertex(int indice);
-	void setVertex(int indice, float x, float y);
-	void init();
+    void init() { glGenBuffers(1, &_vbo); }
     void draw(int width, int height, uint32_t shader, bool includeMouse, Eigen::Vector2f mouse);
-	bool contain(float x, float y);
-	void destroy(void);
-	
+    void destroy();
+
+    iterator_point contain(float x, float y);
+    bool isValid(iterator_point it) const;
+
+    void setColor(nanogui::Color c) { color = c; }
+    void addVertex(Eigen::Vector2f vec) { mesh.push_back(Point(vec)); };
+
+    void setClose(bool c) { close = c; };
+    bool isClose() const { return close; };
+
+    void clear() { mesh.clear(); }
 	size_t size() const { return mesh.size(); };
-	void setColor(nanogui::Color c);
 };
 
 #endif

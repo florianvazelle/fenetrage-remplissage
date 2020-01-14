@@ -1,38 +1,19 @@
 #include <iostream>
 #include "Mesh.h"
 
-void Mesh::addVertex(Eigen::Vector2f vec) {
-    mesh.push_back(vec);
-}
-
-Eigen::Vector2f Mesh::getVertex(int indice) {
-	return mesh[indice];
-}
-
-void Mesh::setVertex(int indice, float x, float y) {
-	mesh[indice][0] = x;
-	mesh[indice][1] = y;
-}
-
-void Mesh::init() {
-    glGenBuffers(1, &_vbo);
-}
-
-void Mesh::destroy() {
-    glDeleteBuffers(1, &_vbo);
-}
-
 void Mesh::draw(int width, int height, uint32_t shader, bool includeMouse, Eigen::Vector2f mouse) {
     // Si il y a des sommets
     if (mesh.size() > 0) {
         // On copie l'ensemble des sommets dans une variable temporaire
-        std::vector<Eigen::Vector2f> tmp(mesh);
+        std::vector<Eigen::Vector2f> tmp(mesh.size());
+
+        for (int i = 0; i < mesh.size(); i++) {
+            tmp[i] = mesh[i].getPosition();
+        }
 
         // Si on est entrain de dessinee le mesh, on ajoute la coordonnee de la souris a la liste des sommets
-        if (includeMouse) {
-            float xClip = ((mouse[0] + 0.5f) / width) * 2.0f - 1.0f;
-            float yClip = 1.0f - ((mouse[1] + 0.5f) / height) * 2.0f;
-            tmp.push_back({ xClip, yClip });
+        if (includeMouse && !close) {
+            tmp.push_back(mouse);
         }
 
         // On bind le vbo pour le modifier
@@ -52,25 +33,38 @@ void Mesh::draw(int width, int height, uint32_t shader, bool includeMouse, Eigen
         // Je bind le VBO du mesh
         glBindBuffer(GL_ARRAY_BUFFER, _vbo);
         // Et je le dessine
-        if (tmp.size() > 2)
-            glDrawArrays(GL_LINE_STRIP, 0, (GLsizei)tmp.size());
-        else if (tmp.size() == 2)
-            glDrawArrays(GL_LINES, 0, (GLsizei)tmp.size());
+        if (close) {
+            glDrawArrays(GL_LINE_LOOP, 0, (GLsizei)tmp.size());
+        }
+        else {
+            if (tmp.size() > 2)
+                glDrawArrays(GL_LINE_STRIP, 0, (GLsizei)tmp.size());
+            else if (tmp.size() == 2)
+                glDrawArrays(GL_LINES, 0, (GLsizei)tmp.size());
+        }
         // Je bind a zero, pour eviter toute modifications du vbo
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
+
+    for (int i = 0; i < mesh.size(); i++) {
+        mesh[i].draw(shader, mouse);
+    }
 }
 
-bool Mesh::contain(float x, float y) {
-	if ((x >= this->mesh[0][0]) && (y >= this->mesh[0][1]) && 
-		(x <= this->mesh[2][0]) && (y <= this->mesh[2][1])) {
-		return TRUE;
-	}
-	else {
-		return FALSE;
-	}
+iterator_point Mesh::contain(float x, float y) {
+    for (iterator_point p = mesh.begin(); p != mesh.end(); ++p) {
+        if (p->contain(x, y)) {
+            return p;
+        }
+    }
+    return mesh.end();
 }
 
-void Mesh::setColor(nanogui::Color c) {
-    color = c;
+bool Mesh::isValid(iterator_point it) const {
+    return it != mesh.end();
+}
+
+void Mesh::destroy() {
+    glDeleteBuffers(1, &_vbo);
+    clear();
 }
