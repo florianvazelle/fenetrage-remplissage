@@ -17,8 +17,8 @@ bool cyrusBeck(float x1,float y1,float x2,float y2, std::vector<Eigen::Vector2f>
 	for (int i = 1; i <= nbSeg; i++) {
 
 		C = poly[i];
-		dn = dx * normale[i].x + dy * normale[i].y;
-		wn = (x1 - C.x)* &normale[i].x + (y1 - C.y)* normale[i].y;
+		dn = dx * normale[i][0] + dy * normale[i][1];
+		wn = (x1 - C[0])* normale[i][0] + (y1 - C[1])* normale[i][1];
 		
 			if (dn == 0) {
 				return (wn>=0);

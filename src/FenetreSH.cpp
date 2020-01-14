@@ -1,8 +1,7 @@
 #include <iostream>
 
 #include "FenetreSH.h"
-
-
+/*
 bool coupe(Eigen::Vector2f S, std::vector<Eigen::Vector2f> P,
 	std::vector<Eigen::Vector2f> F, std::vector<Eigen::Vector2f> F1) {
 
@@ -25,4 +24,4 @@ std::vector<Eigen::Vector2f> Decoupage(std::vector<Eigen::Vector2f> PL, std::vec
 	std::vector<Eigen::Vector2f> PS;
 
 
-}
+}*/
