@@ -1,5 +1,6 @@
 #include <nanogui/nanogui.h>
 #include "GUI.h"
+#include "FenetreSH.h"
 
 float margin = 0.03f;
 
@@ -64,7 +65,16 @@ void GUI::init(GLFWwindow *window) {
     new Label(w, "Effectuer", "sans-bold", 25);
 
     b = new Button(w, "Fenetrage");
-    b->setCallback([&] { std::cout << "Fenetrage" << std::endl; });
+    b->setCallback([&] { 
+        std::cout << "Fenetrage" << std::endl; 
+        if (polygons.size() > 0) {
+            std::vector<Eigen::Vector2f> res = Decoupage(polygons[0].getAllPoints(), cutWindow.getAllPoints());
+            // Debug
+            for (Eigen::Vector2f v : res) {
+                std::cout << "(" << v[0] << "," << v[1] << ")" << std::endl;
+            }
+        }
+    });
 
     b = new Button(w, "Remplissage");
     b->setCallback([&] { std::cout << "Remplissage" << std::endl; });

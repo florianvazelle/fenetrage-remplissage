@@ -28,6 +28,14 @@ public:
     void setClose(bool c) { close = c; };
     bool isClose() const { return close; };
 
+    std::vector<Eigen::Vector2f> getAllPoints() const {
+        std::vector<Eigen::Vector2f> allPoints;
+        for (Point p : mesh) {
+            allPoints.push_back(p.getPosition());
+        }
+        return allPoints;
+    }
+
     void clear() { mesh.clear(); }
 	size_t size() const { return mesh.size(); };
 };

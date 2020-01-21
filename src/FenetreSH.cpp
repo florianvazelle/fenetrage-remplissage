@@ -2,23 +2,77 @@
 
 #include "FenetreSH.h"
 
+// Methods test si intersection segment-droite
 bool coupe(Eigen::Vector2f S, Eigen::Vector2f P, Eigen::Vector2f F, Eigen::Vector2f F1) {
-
+    Eigen::Vector2f FS, FP, FF1;
+    FF1[0] = F1[0] - F[0];
+    FF1[1] = F1[1] - F[1];
+    FP[0] = P[0] - F[0];
+    FP[1] = P[1] - F[1];
+    FS[0] = S[0] - F[0];
+    FS[1] = S[1] - F[1];
+    if ((FF1[0] * FP[1] - FF1[1] * FP[0]) * (FF1[0] * FS[1] - FF1[1] * FS[0]) < 0)
+        return true;
+    else
+        return false;
 }
-
+// Methods retourne le point d'intersection segment-droite
 Eigen::Vector2f intersection(Eigen::Vector2f S, Eigen::Vector2f P, Eigen::Vector2f F, Eigen::Vector2f F1) {
+    float x1 = S[0];
+    float y1 = S[1];
+    float x2 = P[0];
+    float y2 = P[1];
 
+    float x3 = F[0];
+    float y3 = F[1];
+    float x4 = F1[0];
+    float y4 = F1[1];
+
+    float numA = (x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3);
+    float numB = (x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3);
+    float deNom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+
+    if (deNom == 0) {
+        std::cout << "intersection mauvais algo" << std::endl;
+    }
+
+    float uA = numA / deNom;
+    float uB = numB / deNom;
+
+    Eigen::Vector2f out;
+
+    if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1) {
+        out[0] = x1 + (uA * (x2 - x1));
+        out[1] = y1 + (uA * (y2 - y1));
+    } else {
+        std::cout << "intersection mauvais algo" << std::endl;
+    }
+
+    return out;
 }
 
 bool visible(Eigen::Vector2f S, Eigen::Vector2f F, Eigen::Vector2f F1) {
+    // Vecteur directeur de F et F1
+    Eigen::Vector2f dirFF1(F1[0] - F[0], F1[1] - F[1]);
+    // Normal
+    Eigen::Vector2f normal(dirFF1[1], -dirFF1[0]);
+    normal.normalize();
 
+    // Vecteur directeur de F et S
+    Eigen::Vector2f dirFS(S[0] - F[0], S[1] - F[1]);
+
+    // Produit scalaire
+    float pscal = dirFS[0] * normal[0] + dirFS[1] * normal[1];
+    return pscal > 0;
 }
 
 void charger(Eigen::Vector2f I, std::vector<Eigen::Vector2f> PS) {
-
+    PS.push_back(I);
 }
 
-/* Dans le pseudo code Pj correspond au points de PL
+/* PL correspond a un polygone et PW a la fenetre
+
+Dans le pseudo code Pj correspond au points de PL
 et Fi correspond au point de PW */
 std::vector<Eigen::Vector2f> Decoupage(std::vector<Eigen::Vector2f> PL, std::vector<Eigen::Vector2f> PW) {
 
@@ -63,4 +117,15 @@ std::vector<Eigen::Vector2f> Decoupage(std::vector<Eigen::Vector2f> PL, std::vec
       n1 = n2;
     }
   }
+
+  return PS;
+}
+
+std::vector<Eigen::Vector2f> Decoupage(Mesh PL, Mesh PW) {
+    std::vector<Eigen::Vector2f> PLAllPoints = PL.getAllPoints();
+    PLAllPoints.push_back(PLAllPoints[0]);
+
+    std::vector<Eigen::Vector2f> PWAllPoints = PW.getAllPoints();
+    PWAllPoints.push_back(PWAllPoints[0]);
+    return Decoupage(PLAllPoints, PWAllPoints);
 }

@@ -1,18 +1,11 @@
-#pragma once
 #ifndef FenetreSH_H
 #define FenetreSH_H
 
 #include <vector>
 #include <nanogui/nanogui.h>
-/*
-bool coupe(Eigen::Vector2f S, std::vector<Eigen::Vector2f> P,
-	std::vector<Eigen::Vector2f> F, std::vector<Eigen::Vector2f> F1);
+#include "Mesh.h"
 
-Eigen::Vector2f intersection(Eigen::Vector2f S, std::vector<Eigen::Vector2f> P,
-	std::vector<Eigen::Vector2f> F, std::vector<Eigen::Vector2f> F1);
+std::vector<Eigen::Vector2f> Decoupage(Mesh PL, Mesh PW);
+std::vector<Eigen::Vector2f> Decoupage(std::vector<Eigen::Vector2f> PL, std::vector<Eigen::Vector2f> PW);
 
-bool visible(Eigen::Vector2f S,std::vector<Eigen::Vector2f> F, std::vector<Eigen::Vector2f> F1);
-
-void Decoupage(std::vector<Eigen::Vector2f> PL, std::vector<Eigen::Vector2f> PW);
-*/
 #endif
