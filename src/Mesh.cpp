@@ -1,7 +1,7 @@
 #include <iostream>
 #include "Mesh.h"
 
-void Mesh::draw(int width, int height, uint32_t shader, bool includeMouse, Eigen::Vector2f mouse) {
+void Mesh::draw(const int width, const int height, const uint32_t& shader, const bool includeMouse, const Eigen::Vector2f& mouse) const {
     // Si il y a des sommets
     if (mesh.size() > 0) {
         // On copie l'ensemble des sommets dans une variable temporaire
@@ -51,13 +51,26 @@ void Mesh::draw(int width, int height, uint32_t shader, bool includeMouse, Eigen
     }
 }
 
-iterator_point Mesh::contain(float x, float y) {
+iterator_point Mesh::contain(const float x, const float y) {
     for (iterator_point p = mesh.begin(); p != mesh.end(); ++p) {
         if (p->contain(x, y)) {
             return p;
         }
     }
     return mesh.end();
+}
+
+const_iterator_point Mesh::contain(const float x, const float y) const {
+  for (const_iterator_point p = mesh.begin(); p != mesh.end(); ++p) {
+    if (p->contain(x, y)) {
+      return p;
+    }
+  }
+  return mesh.end();
+}
+
+bool Mesh::isValid(const_iterator_point it) const {
+    return it != mesh.end();
 }
 
 bool Mesh::isValid(iterator_point it) const {

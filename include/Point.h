@@ -11,7 +11,7 @@ private:
     const float margin = 0.03f;
 
 public:
-	Point(Eigen::Vector2f vec) {
+	Point(const Eigen::Vector2f& vec) {
 		position = vec;
 
         glGenBuffers(1, &_vbo);
@@ -26,13 +26,13 @@ public:
         glDeleteBuffers(1, &_vbo);
     }
 
-    bool contain(float x, float y) {
+    bool contain(float x, float y) const {
         return ((x >= this->hitbox[0][0]) && (y >= this->hitbox[0][1]) && (x <= this->hitbox[2][0]) && (y <= this->hitbox[2][1]));
     }
 
-    void draw(uint32_t shader, Eigen::Vector2f mouse);
+    void draw(const uint32_t& shader, const Eigen::Vector2f& mouse) const;
 
-    void setPosition(Eigen::Vector2f coordGL) { 
+    void setPosition(const Eigen::Vector2f& coordGL) { 
         position = coordGL;
 
         hitbox[0] = { position[0] - margin, position[1] - margin };

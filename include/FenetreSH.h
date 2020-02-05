@@ -5,7 +5,7 @@
 #include <nanogui/nanogui.h>
 #include "Mesh.h"
 
-std::vector<Eigen::Vector2f> Decoupage(Mesh PL, Mesh PW);
-std::vector<Eigen::Vector2f> Decoupage(std::vector<Eigen::Vector2f> PL, std::vector<Eigen::Vector2f> PW);
+void Decoupage(std::vector<Eigen::Vector2f>&, const Mesh&, const Mesh&);
+void Decoupage(std::vector<Eigen::Vector2f>&, const std::vector<Eigen::Vector2f>&, const std::vector<Eigen::Vector2f>&);
 
 #endif

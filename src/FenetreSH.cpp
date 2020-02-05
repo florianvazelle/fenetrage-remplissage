@@ -3,7 +3,7 @@
 #include "FenetreSH.h"
 
 // Methods test si intersection segment-droite
-bool coupe(Eigen::Vector2f S, Eigen::Vector2f P, Eigen::Vector2f F, Eigen::Vector2f F1) {
+bool coupe(const Eigen::Vector2f& S, const Eigen::Vector2f& P, const Eigen::Vector2f& F, const Eigen::Vector2f& F1) {
     Eigen::Vector2f FS, FP, FF1;
     FF1[0] = F1[0] - F[0];
     FF1[1] = F1[1] - F[1];
@@ -16,8 +16,16 @@ bool coupe(Eigen::Vector2f S, Eigen::Vector2f P, Eigen::Vector2f F, Eigen::Vecto
     else
         return false;
 }
+
+// Produit scalaire
+float dot(const Eigen::Vector2f &v1, const Eigen::Vector2f &v2) {
+  return v1[0] * v2[0] + v1[1] * v2[1];
+}
+
 // Methods retourne le point d'intersection segment-droite
-Eigen::Vector2f intersection(Eigen::Vector2f S, Eigen::Vector2f P, Eigen::Vector2f F, Eigen::Vector2f F1) {
+Eigen::Vector2f intersection(const Eigen::Vector2f& S, const Eigen::Vector2f& P, const Eigen::Vector2f& F, const Eigen::Vector2f& F1) {
+	std::cout << S << std::endl;
+
     float x1 = S[0];
     float y1 = S[1];
     float x2 = P[0];
@@ -28,30 +36,19 @@ Eigen::Vector2f intersection(Eigen::Vector2f S, Eigen::Vector2f P, Eigen::Vector
     float x4 = F1[0];
     float y4 = F1[1];
 
-    float numA = (x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3);
-    float numB = (x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3);
-    float deNom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+    float a1 = (y4 - y3) / (x4 - x3);
+    float b1 = (y3 - a1 * x3);
 
-    if (deNom == 0) {
-        std::cout << "intersection mauvais algo" << std::endl;
-    }
+    float a2 = (y2 - y1) / (x2 - x1);
+    float b2 = (y2 - a2 * x2);
 
-    float uA = numA / deNom;
-    float uB = numB / deNom;
+    float x = (b2 - b1) / (a1 - a2);
+    float y = (a1 * x + b1);
 
-    Eigen::Vector2f out;
-
-    if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1) {
-        out[0] = x1 + (uA * (x2 - x1));
-        out[1] = y1 + (uA * (y2 - y1));
-    } else {
-        std::cout << "intersection mauvais algo" << std::endl;
-    }
-
-    return out;
+    return { x, y };
 }
 
-bool visible(Eigen::Vector2f S, Eigen::Vector2f F, Eigen::Vector2f F1) {
+bool visible(const Eigen::Vector2f& S, const Eigen::Vector2f& F, const Eigen::Vector2f& F1) {
     // Vecteur directeur de F et F1
     Eigen::Vector2f dirFF1(F1[0] - F[0], F1[1] - F[1]);
     // Normal
@@ -66,66 +63,66 @@ bool visible(Eigen::Vector2f S, Eigen::Vector2f F, Eigen::Vector2f F1) {
     return pscal > 0;
 }
 
-void charger(Eigen::Vector2f I, std::vector<Eigen::Vector2f> PS) {
-    PS.push_back(I);
-}
-
 /* PL correspond a un polygone et PW a la fenetre
 
 Dans le pseudo code Pj correspond au points de PL
-et Fi correspond au point de PW */
-std::vector<Eigen::Vector2f> Decoupage(std::vector<Eigen::Vector2f> PL, std::vector<Eigen::Vector2f> PW) {
+et Fi correspond au point de PW
 
-  int n2;
-  Eigen::Vector2f S, F, I; // points
-  std::vector<Eigen::Vector2f> PS; // polygone finale
+PS correspond a out (variable de sortie) polygone finale  */
+void Decoupage(std::vector<Eigen::Vector2f> &out,
+               const std::vector<Eigen::Vector2f> &entry_poly,
+               const std::vector<Eigen::Vector2f> &window) {
 
-  int n1 = PL.size();
-  int n3 = PW.size();
+	int n2;
+	Eigen::Vector2f S, F, I; // points
+	std::vector<Eigen::Vector2f> curren_poly = entry_poly;
 
-  /* Pour chaque point de la window P W */
-  for (int i = 1; i <= n3 - 1; i++) { // n3 -1 car le dernier point correspond aussi au premier
-    n2 = 0;
-    PS.clear();
+	int n1 = entry_poly.size();
+	int n3 = window.size();
 
-    /* Pour chaque point du polygone P L */
-    for (int j = 0; j <= n1; j++) {
-      if (j == 1) {
-        F = PL[j]; /* Sauver le 1 er = dernier sommet */
-      } else {
-        if (coupe(S, PL[j], PW[i], PW[i + 1])) {
-          I = intersection(S, PL[j], PW[i], PW[i + 1]);
-          charger(I, PS);
-          n2++;
-        }
-      }
-      S = PL[j];
-      if (visible(S, PW[i], PW[i + 1])) {
-        charger(S, PS);
-        n2++;
-      }
-    }
-    if (n2 > 0) {
-      /* Traitement du dernier côté de P L */
-      if (coupe(S, F, PW[i], PW[i + 1])) {
-        I = intersection(S, F, PW[i], PW[i + 1]);
-        charger(I, PS);
-        n2++;
-      }
-      /* Découpage pour chacun des sous polygones */
-      PL = PS; // On remplace
-      n1 = n2;
-    }
-  }
+	/* Pour chaque point de la window P W */
+	for (int i = 1; i <= n3 - 1; i++) { // n3 -1 car le dernier point correspond aussi au premier
+		n2 = 0;
+		out.clear();
 
-  return PS;
+		/* Pour chaque point du polygone P L */
+		for (int j = 0; j <= n1; j++) {
+			if (j == 1) {
+				F = curren_poly[j]; /* Sauver le 1 er = dernier sommet */
+			} else {
+				if (coupe(S, curren_poly[j], window[i], window[i + 1])) {
+					I = intersection(S, curren_poly[j], window[i], window[i + 1]);
+					out.push_back(I);
+					n2++;
+				}
+			}
+			S = curren_poly[j];
+			if (visible(S, window[i], window[i + 1])) {
+				out.push_back(S);
+				n2++;
+			}
+		}
+		if (n2 > 0) {
+			/* Traitement du dernier côté de P L */
+			if (coupe(S, F, window[i], window[i + 1])) {
+				I = intersection(S, F, window[i], window[i + 1]);
+				out.push_back(I);
+				n2++;
+			}
+			/* Découpage pour chacun des sous polygones */
+			curren_poly = out; // On remplace
+			n1 = n2;
+		}
+	}
 }
 
-std::vector<Eigen::Vector2f> Decoupage(Mesh PL, Mesh PW) {
-    std::vector<Eigen::Vector2f> PLAllPoints = PL.getAllPoints();
-    PLAllPoints.push_back(PLAllPoints[0]);
+// Decoupe entre deux Mesh
+void Decoupage(std::vector<Eigen::Vector2f>& out, const Mesh& PL, const Mesh& PW) {
+  std::vector<Eigen::Vector2f> PLAllPoints = PL.getAllPoints();
+  PLAllPoints.push_back(PLAllPoints[0]);
 
-    std::vector<Eigen::Vector2f> PWAllPoints = PW.getAllPoints();
-    PWAllPoints.push_back(PWAllPoints[0]);
-    return Decoupage(PLAllPoints, PWAllPoints);
+  std::vector<Eigen::Vector2f> PWAllPoints = PW.getAllPoints();
+  PWAllPoints.push_back(PWAllPoints[0]);
+
+  Decoupage(out, PLAllPoints, PWAllPoints);
 }

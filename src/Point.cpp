@@ -1,6 +1,6 @@
 #include "Point.h"
 
-void Point::draw(uint32_t shader, Eigen::Vector2f mouse) {
+void Point::draw(const uint32_t& shader, const Eigen::Vector2f& mouse) const {
     if (true /* && contain(mouse[0], mouse[1]) */) {
 
         glBindBuffer(GL_ARRAY_BUFFER, _vbo);

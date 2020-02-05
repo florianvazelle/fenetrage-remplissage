@@ -47,7 +47,7 @@ void GUI::init(GLFWwindow *window) {
 
     b = new Button(tools, "");
     b->setIcon(ENTYPO_ICON_TRASH);
-    b->setCallback([&] { polygons.pop_back(); });
+    b->setCallback([&] { if (polygons.size() > 0) polygons.pop_back(); });
 
     b = new Button(tools, "Fenetre");
     b->setCallback([&] { changeMode(Mode::edit_Window_mode); });
@@ -68,10 +68,17 @@ void GUI::init(GLFWwindow *window) {
     b->setCallback([&] { 
         std::cout << "Fenetrage" << std::endl; 
         if (polygons.size() > 0) {
-            std::vector<Eigen::Vector2f> res = Decoupage(polygons[0].getAllPoints(), cutWindow.getAllPoints());
+            drawPoly.clear();
+
+            std::vector<Eigen::Vector2f> res;
+            Decoupage(res, polygons[0].getAllPoints(), cutWindow.getAllPoints());
+            std::cout << "Fin Fenetrage" << std::endl;
+
+            drawPoly.setColor({ 0.0f, 0.0f, 0.0f, 1.0f });
             // Debug
             for (Eigen::Vector2f v : res) {
                 std::cout << "(" << v[0] << "," << v[1] << ")" << std::endl;
+                drawPoly.addVertex(v);
             }
         }
     });
@@ -94,6 +101,7 @@ void GUI::draw(uint32_t shader) {
     cutWindow.draw(width, height, shader, (mode == Mode::edit_Window_mode), mouse);
     for (Mesh poly : polygons)
         poly.draw(width, height, shader, (mode == Mode::edit_Polygon_mode), mouse);
+    drawPoly.draw(width, height, shader, false, mouse);
 
     // draw de nanoGUI
     drawContents();
@@ -151,7 +159,7 @@ void GUI::defineCallbacks(GLFWwindow* window) {
                 }
 
                 Mesh* currentPoly = &gui->polygons.back();
-                iterator_point pointInsideHitBox = currentPoly->contain(coordGL[0], coordGL[1]);
+                const_iterator_point pointInsideHitBox = currentPoly->contain(coordGL[0], coordGL[1]);
 
 				if (currentPoly->isValid(pointInsideHitBox)) {
                     // Si oui, on ferme le mesh
@@ -162,7 +170,7 @@ void GUI::defineCallbacks(GLFWwindow* window) {
                     currentPoly->addVertex(coordGL);
 				}
             } else if (gui->mode == Mode::edit_Window_mode) {
-                iterator_point pointInsideHitBox = gui->cutWindow.contain(coordGL[0], coordGL[1]);
+                const_iterator_point pointInsideHitBox = gui->cutWindow.contain(coordGL[0], coordGL[1]);
 
                 if (gui->cutWindow.isValid(pointInsideHitBox)) {
                     gui->cutWindow.setClose(true);
