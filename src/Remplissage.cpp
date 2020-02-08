@@ -1,19 +1,11 @@
 #include <iostream>
 #include "Remplissage.h"
 
-/*
-void RemplissageLCA(Poly, CR) {
-	struct SI {
-		tab[nivLigne]
-	};
-	
-	struct LCA {
+/*void RemplissageLCA(Poly, CR)
+{
+	SI = CreatSI(Poly);
+	LCA = InitLCA();
 
-
-	};
-
-	for 
-
-
-}
-*/
+	for ()
+		;
+}*/

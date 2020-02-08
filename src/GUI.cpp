@@ -3,6 +3,7 @@
 #include "FenetreSH.h"
 
 float margin = 0.03f;
+bool debug = false;
 
 GUI::GUI() : nanogui::Screen() {
     mode = Mode::no_Operation_mode;
@@ -218,7 +219,48 @@ void GUI::defineCallbacks(GLFWwindow* window) {
     });
 
     glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
-        static_cast<GUI*>(glfwGetWindowUserPointer(window))->keyCallbackEvent(key, scancode, action, mods);
+        GUI* gui = static_cast<GUI*>(glfwGetWindowUserPointer(window));
+        gui->keyCallbackEvent(key, scancode, action, mods);
+        
+        if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+            if (!debug) {
+                gui->cutWindow.setColor({ 0.0f, 1.0f, 0.0f, 1.0f });
+                gui->cutWindow.addVertex({ -0.23f, 0.22f });
+                gui->cutWindow.addVertex({ 0.3f, 0.22f });
+                gui->cutWindow.addVertex({ 0.22f, -0.22f });
+                gui->cutWindow.addVertex({ -0.19f, -0.16f });
+                gui->cutWindow.setClose(true);
+
+                Mesh tmp;
+                tmp.init();
+                tmp.setColor({ 1.0f, 1.0f, 0.0f, 1.0f });
+                tmp.addVertex({ 0.0f, 0.38f });
+                tmp.addVertex({ 0.37f, -0.03f });
+                tmp.addVertex({ 0.0f, -0.26f });
+                tmp.addVertex({ -0.33f, 0.04f });
+                tmp.setClose(true);
+                gui->polygons.push_back(tmp);
+
+                debug = true;
+            }
+
+            std::cout << "Fenetrage" << std::endl; 
+            if (gui->polygons.size() > 0) {
+                gui->drawPoly.clear();
+
+                std::vector<Eigen::Vector2f> res;
+                Decoupage(res, gui->polygons[0], gui->cutWindow);
+                std::cout << "Fin Fenetrage" << std::endl;
+
+                gui->drawPoly.setColor({ 0.0f, 0.0f, 0.0f, 1.0f });
+                // Debug
+                for (Eigen::Vector2f v : res) {
+                    std::cout << "(" << v[0] << "," << v[1] << ")" << std::endl;
+                    gui->drawPoly.addVertex(v);
+                }
+                gui->drawPoly.setClose(true);
+            }
+        }
     });
 
     glfwSetCharCallback(window, [](GLFWwindow* window, unsigned int codepoint) {
