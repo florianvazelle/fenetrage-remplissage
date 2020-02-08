@@ -17,7 +17,7 @@ private:
 
 public:
     void init() { glGenBuffers(1, &_vbo); }
-    void draw(const int width, const int height, const uint32_t& shader, const bool includeMouse, const Eigen::Vector2f& mouse) const;
+    void draw(const int width, const int height, const uint32_t& shader, const bool includeMouse, const bool editMode, const Eigen::Vector2f& mouse) const;
     void destroy();
 
     iterator_point contain(const float x, const float y);

@@ -1,7 +1,7 @@
 #include <iostream>
 #include "Mesh.h"
 
-void Mesh::draw(const int width, const int height, const uint32_t& shader, const bool includeMouse, const Eigen::Vector2f& mouse) const {
+void Mesh::draw(const int width, const int height, const uint32_t& shader, const bool includeMouse, const bool editMode, const Eigen::Vector2f& mouse) const {
     // Si il y a des sommets
     if (mesh.size() > 0) {
         // On copie l'ensemble des sommets dans une variable temporaire
@@ -47,7 +47,7 @@ void Mesh::draw(const int width, const int height, const uint32_t& shader, const
     }
 
     for (int i = 0; i < mesh.size(); i++) {
-        mesh[i].draw(shader, mouse);
+        mesh[i].draw(shader, editMode, mouse);
     }
 }
 

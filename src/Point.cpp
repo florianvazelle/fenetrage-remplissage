@@ -1,7 +1,7 @@
 #include "Point.h"
 
-void Point::draw(const uint32_t& shader, const Eigen::Vector2f& mouse) const {
-    if (true /* && contain(mouse[0], mouse[1]) */) {
+void Point::draw(const uint32_t& shader, const bool editMode, const Eigen::Vector2f& mouse) const {
+    if (editMode || contain(mouse[0], mouse[1])) {
 
         glBindBuffer(GL_ARRAY_BUFFER, _vbo);
         glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(Eigen::Vector2f), &hitbox[0], GL_DYNAMIC_DRAW);

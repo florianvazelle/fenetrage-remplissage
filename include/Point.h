@@ -16,10 +16,12 @@ public:
 
         glGenBuffers(1, &_vbo);
 
-        hitbox[0] = { position[0] - margin, position[1] - margin };
-        hitbox[1] = { position[0] - margin, position[1] + margin };
-        hitbox[2] = { position[0] + margin, position[1] + margin };
-        hitbox[3] = { position[0] + margin, position[1] - margin };
+        float marginY = (1080 * margin) / 1920; 
+
+        hitbox[0] = { position[0] - margin, position[1] - marginY };
+        hitbox[1] = { position[0] - margin, position[1] + marginY };
+        hitbox[2] = { position[0] + margin, position[1] + marginY };
+        hitbox[3] = { position[0] + margin, position[1] - marginY };
 	}
 
     ~Point() {
@@ -30,15 +32,17 @@ public:
         return ((x >= this->hitbox[0][0]) && (y >= this->hitbox[0][1]) && (x <= this->hitbox[2][0]) && (y <= this->hitbox[2][1]));
     }
 
-    void draw(const uint32_t& shader, const Eigen::Vector2f& mouse) const;
+    void draw(const uint32_t& shader, const bool editMode, const Eigen::Vector2f& mouse) const;
 
     void setPosition(const Eigen::Vector2f& coordGL) { 
         position = coordGL;
 
-        hitbox[0] = { position[0] - margin, position[1] - margin };
-        hitbox[1] = { position[0] - margin, position[1] + margin };
-        hitbox[2] = { position[0] + margin, position[1] + margin };
-        hitbox[3] = { position[0] + margin, position[1] - margin };
+        float marginY = (1080 * margin) / 1920; 
+
+        hitbox[0] = { position[0] - margin, position[1] - marginY };
+        hitbox[1] = { position[0] - margin, position[1] + marginY };
+        hitbox[2] = { position[0] + margin, position[1] + marginY };
+        hitbox[3] = { position[0] + margin, position[1] - marginY };
     };
 	Eigen::Vector2f getPosition() const { return position; };
 };

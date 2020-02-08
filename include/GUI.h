@@ -7,7 +7,7 @@
 
 class GUI : public nanogui::Screen {
 	private:
-		enum class Mode : int { no_Operation_mode, edit_Polygon_mode, edit_Window_mode };
+		enum class Mode : int { no_Operation_mode, select_mode, edit_Polygon_mode, edit_Window_mode };
 		Mode mode;
 
 		int width, height;

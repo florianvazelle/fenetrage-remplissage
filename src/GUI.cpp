@@ -38,7 +38,7 @@ void GUI::init(GLFWwindow *window) {
     b->setPushed(true);
 
     b = new Button(tools, "");
-    b->setCallback([&] { changeMode(Mode::no_Operation_mode); });
+    b->setCallback([&] { changeMode(Mode::select_mode); });
     b->setIcon(ENTYPO_ICON_MOUSE_POINTER);
     b->setFlags(Button::RadioButton);
 
@@ -100,11 +100,13 @@ void GUI::draw(uint32_t shader) {
     if (cutWindow.size() == 1) cutWindow.setColor(currentColor);
     if (polygons.size() > 0 && polygons.back().size() == 1) (&polygons.back())->setColor(currentColor);
 
-    cutWindow.draw(width, height, shader, (mode == Mode::edit_Window_mode), mouse);
+    const bool editMode = mode == Mode::select_mode;
+
+    cutWindow.draw(width, height, shader, (mode == Mode::edit_Window_mode), editMode, mouse);
     for (const Mesh& poly : polygons)
-        poly.draw(width, height, shader, (mode == Mode::edit_Polygon_mode), mouse);
+        poly.draw(width, height, shader, (mode == Mode::edit_Polygon_mode), editMode, mouse);
     for (const Mesh& poly : drawPoly)
-        poly.draw(width, height, shader, false, mouse);
+        poly.draw(width, height, shader, false, false, mouse);
 
     // draw de nanoGUI
     drawContents();
@@ -118,7 +120,7 @@ void GUI::destroy() {
 }
 
 void GUI::changeMode(Mode m) {
-    static const char* ModeStrings[] = { "no_Operation_mode", "edit_Polygon_mode", "edit_Window_mode" };
+    static const char* ModeStrings[] = { "no_Operation_mode", "select_mode", "edit_Polygon_mode", "edit_Window_mode" };
     std::cout << "Changement de mode: " << ModeStrings[(int)m] << std::endl;
     mode = m;
 }
@@ -180,7 +182,7 @@ void GUI::defineCallbacks(GLFWwindow* window) {
                 } else {
                     gui->cutWindow.addVertex(coordGL);
                 }
-			} else if (gui->mode == Mode::no_Operation_mode) {
+			} else if (gui->mode == Mode::select_mode) {
                 if (gui->wantToEditPolygon) {
                     gui->wantToEditPolygon = false;
                     gui->polyToModify = nullptr;
