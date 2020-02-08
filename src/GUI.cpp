@@ -3,7 +3,7 @@
 #include "FenetreSH.h"
 
 float margin = 0.03f;
-bool debug = false;
+bool debug = true;
 
 GUI::GUI() : nanogui::Screen() {
     mode = Mode::no_Operation_mode;
@@ -67,20 +67,21 @@ void GUI::init(GLFWwindow *window) {
 
     b = new Button(w, "Fenetrage");
     b->setCallback([&] { 
-        std::cout << "Fenetrage" << std::endl; 
-        if (polygons.size() > 0) {
-            drawPoly.clear();
+        drawPoly.clear();
+        for (const Mesh& poly : polygons) {
+            Mesh tmp;
+            tmp.init();
+            tmp.setColor({ 0.0f, 0.0f, 0.0f, 1.0f });
 
             std::vector<Eigen::Vector2f> res;
-            Decoupage(res, polygons[0], cutWindow);
-            std::cout << "Fin Fenetrage" << std::endl;
+            Decoupage(res, poly, cutWindow);
 
-            drawPoly.setColor({ 0.0f, 0.0f, 0.0f, 1.0f });
-            // Debug
-            for (Eigen::Vector2f v : res) {
-                std::cout << "(" << v[0] << "," << v[1] << ")" << std::endl;
-                drawPoly.addVertex(v);
+            for (const Eigen::Vector2f& v : res) {
+                tmp.addVertex(v);
             }
+            tmp.setClose(true);
+
+            drawPoly.push_back(tmp);
         }
     });
 
@@ -100,9 +101,10 @@ void GUI::draw(uint32_t shader) {
     if (polygons.size() > 0 && polygons.back().size() == 1) (&polygons.back())->setColor(currentColor);
 
     cutWindow.draw(width, height, shader, (mode == Mode::edit_Window_mode), mouse);
-    for (Mesh poly : polygons)
+    for (const Mesh& poly : polygons)
         poly.draw(width, height, shader, (mode == Mode::edit_Polygon_mode), mouse);
-    drawPoly.draw(width, height, shader, false, mouse);
+    for (const Mesh& poly : drawPoly)
+        poly.draw(width, height, shader, false, mouse);
 
     // draw de nanoGUI
     drawContents();
@@ -226,6 +228,7 @@ void GUI::defineCallbacks(GLFWwindow* window) {
             if (!debug) {
                 gui->cutWindow.setColor({ 0.0f, 1.0f, 0.0f, 1.0f });
                 gui->cutWindow.addVertex({ -0.23f, 0.22f });
+                gui->cutWindow.addVertex({ -0.11f, 0.36f });
                 gui->cutWindow.addVertex({ 0.3f, 0.22f });
                 gui->cutWindow.addVertex({ 0.22f, -0.22f });
                 gui->cutWindow.addVertex({ -0.19f, -0.16f });
@@ -237,6 +240,7 @@ void GUI::defineCallbacks(GLFWwindow* window) {
                 tmp.addVertex({ 0.0f, 0.38f });
                 tmp.addVertex({ 0.37f, -0.03f });
                 tmp.addVertex({ 0.0f, -0.26f });
+                tmp.addVertex({ -0.13f, -0.05f });
                 tmp.addVertex({ -0.33f, 0.04f });
                 tmp.setClose(true);
                 gui->polygons.push_back(tmp);
@@ -244,18 +248,22 @@ void GUI::defineCallbacks(GLFWwindow* window) {
                 debug = true;
             }
 
-            if (gui->polygons.size() > 0) {
-                gui->drawPoly.clear();
+            gui->drawPoly.clear();
+            for (const Mesh& poly : gui->polygons) {
+                std::cout << "Decoupage" << std::endl;
+                Mesh tmp;
+                tmp.init();
+                tmp.setColor({ 0.0f, 0.0f, 0.0f, 1.0f });
 
                 std::vector<Eigen::Vector2f> res;
-                Decoupage(res, gui->polygons[0], gui->cutWindow);
+                Decoupage(res, poly, gui->cutWindow);
 
-                gui->drawPoly.setColor({ 0.0f, 0.0f, 0.0f, 1.0f });
-                // Debug
                 for (Eigen::Vector2f v : res) {
-                    gui->drawPoly.addVertex(v);
+                    tmp.addVertex(v);
                 }
-                gui->drawPoly.setClose(true);
+                tmp.setClose(true);
+
+                gui->drawPoly.push_back(tmp);
             }
         }
     });

@@ -15,7 +15,7 @@ class GUI : public nanogui::Screen {
 		Eigen::Vector2f mouse;
 		
 		Mesh cutWindow;							// Fenetre
-		Mesh drawPoly;
+		std::vector<Mesh> drawPoly;
 		Mesh* polyToModify;						// Mesh que l'on va vouloir modifier
 		std::vector<Mesh> polygons;				// Liste de tout les polygones
 
