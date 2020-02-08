@@ -17,40 +17,57 @@ bool coupe(const Eigen::Vector2f& S, const Eigen::Vector2f& P, const Eigen::Vect
         return false;
 }
 
-// Produit scalaire
-float dot(const Eigen::Vector2f &v1, const Eigen::Vector2f &v2) {
-  return v1[0] * v2[0] + v1[1] * v2[1];
+void display(const std::string& s, const Eigen::Vector2f &S) {
+	std::cout << s << "(" << S[0] << ", " << S[1] << ")" << std::endl;
 }
 
-// Methods retourne le point d'intersection segment-droite
+// Methods retourne le point d'intersection droite-droite
+// Mais pas important car juste avant il aura tester l'équation segment droite
 Eigen::Vector2f intersection(const Eigen::Vector2f& S, const Eigen::Vector2f& P, const Eigen::Vector2f& F, const Eigen::Vector2f& F1) {
-	std::cout << S << std::endl;
+  display("S: ", S);
+  display("P: ", P);
+  display("F: ", F);
+  display("F1: ", F1);
 
-    float x1 = S[0];
-    float y1 = S[1];
-    float x2 = P[0];
-    float y2 = P[1];
+  Eigen::Vector2f out;
 
-    float x3 = F[0];
-    float y3 = F[1];
-    float x4 = F1[0];
-    float y4 = F1[1];
+  float x1 = S[0];
+  float y1 = S[1];
+  float x2 = P[0];
+  float y2 = P[1];
 
-    float a1 = (y4 - y3) / (x4 - x3);
-    float b1 = (y3 - a1 * x3);
+  float x3 = F[0];
+  float y3 = F[1];
+  float x4 = F1[0];
+  float y4 = F1[1];
 
-    float a2 = (y2 - y1) / (x2 - x1);
-    float b2 = (y2 - a2 * x2);
+  float numA = (x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3);
+  float numB = (x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3);
+  float deNom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
 
-    float x = (b2 - b1) / (a1 - a2);
-    float y = (a1 * x + b1);
+  if (deNom == 0) {
+    std::cout << "error" << std::endl;
+    return out;
+    }
 
-    return { x, y };
+    float uA = numA / deNom;
+    float uB = numB / deNom;
+
+    if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1) {
+      out[0] = x1 + (uA * (x2 - x1));
+      out[1] = y1 + (uA * (y2 - y1));
+      display("out: ", out);
+      return out;
+    }
+
+    std::cout << "error" << std::endl;
+    return out;
 }
 
 bool visible(const Eigen::Vector2f& S, const Eigen::Vector2f& F, const Eigen::Vector2f& F1) {
     // Vecteur directeur de F et F1
     Eigen::Vector2f dirFF1(F1[0] - F[0], F1[1] - F[1]);
+
     // Normal
     Eigen::Vector2f normal(dirFF1[1], -dirFF1[0]);
     normal.normalize();

@@ -71,7 +71,7 @@ void GUI::init(GLFWwindow *window) {
             drawPoly.clear();
 
             std::vector<Eigen::Vector2f> res;
-            Decoupage(res, polygons[0].getAllPoints(), cutWindow.getAllPoints());
+            Decoupage(res, polygons[0], cutWindow);
             std::cout << "Fin Fenetrage" << std::endl;
 
             drawPoly.setColor({ 0.0f, 0.0f, 0.0f, 1.0f });
