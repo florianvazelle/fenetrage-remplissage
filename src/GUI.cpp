@@ -244,18 +244,15 @@ void GUI::defineCallbacks(GLFWwindow* window) {
                 debug = true;
             }
 
-            std::cout << "Fenetrage" << std::endl; 
             if (gui->polygons.size() > 0) {
                 gui->drawPoly.clear();
 
                 std::vector<Eigen::Vector2f> res;
                 Decoupage(res, gui->polygons[0], gui->cutWindow);
-                std::cout << "Fin Fenetrage" << std::endl;
 
                 gui->drawPoly.setColor({ 0.0f, 0.0f, 0.0f, 1.0f });
                 // Debug
                 for (Eigen::Vector2f v : res) {
-                    std::cout << "(" << v[0] << "," << v[1] << ")" << std::endl;
                     gui->drawPoly.addVertex(v);
                 }
                 gui->drawPoly.setClose(true);

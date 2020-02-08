@@ -63,68 +63,49 @@ void Decoupage(std::vector<Eigen::Vector2f> &out,
 		window.push_back(PW.front());
 	}
 
-	std::vector<Eigen::Vector2f> curren_poly(PL);
+	std::vector<Eigen::Vector2f> poly(PL);
 	if (PL.front() != PL.back())
 	{
-		curren_poly.push_back(PL.front());
+		poly.push_back(PL.front());
 	}
 
-	int n2;
-	Eigen::Vector2f S, front; // points
-
-	int n1 = curren_poly.size();
+	Eigen::Vector2f S; // points
 
 	/* Pour chaque point de la window PW */
 	for (int i = 0; i < window.size() - 1; i++) // n3 - 1 car le dernier point correspond aussi au premier
 	{
-		n2 = 0;
 		out.clear();
 
 		/* Pour chaque point du polygone PL */
-		for (int j = 0; j < curren_poly.size(); j++)
+		for (std::vector<Eigen::Vector2f>::iterator it = poly.begin() ; it != poly.end(); ++it)
 		{
-			const Eigen::Vector2f current_point = curren_poly[j];
-
 			// Si c'est le premier
-			if (j == 0)
-			{
-				// On le sauve
-				front = current_point;
-			}
-			else
+			if (it != poly.begin())
 			{
 				// Sinon, on regarde si il y a intersection
-				if (coupe(S, current_point, window[i], window[i + 1]))
+				if (coupe(S, *it, window[i], window[i + 1]))
 				{
 					// Si oui, on recupère le points et on l'ajoute
-					out.push_back(intersection(S, current_point, window[i], window[i + 1]));
-					n2++;
+					out.push_back(intersection(S, *it, window[i], window[i + 1]));
 				}
 			}
-			S = current_point;
+			S = *it;
 			if (visible(S, window[i], window[i + 1]))
 			{
 				out.push_back(S);
-				n2++;
 			}
 		}
-		if (n2 > 0)
+		if (out.size() > 0)
 		{
 			/* Traitement du dernier côté de P L */
-			if (coupe(S, front, window[i], window[i + 1]))
+			if (coupe(S, poly[0], window[i], window[i + 1]))
 			{
-				out.push_back(intersection(S, front, window[i], window[i + 1]));
-				n2++;
+				out.push_back(intersection(S, poly[0], window[i], window[i + 1]));
 			}
 			/* Découpage pour chacun des sous polygones */
-			curren_poly = out; // On remplace
-			assert(out.size() == n2);
-			n1 = n2;
-			assert(curren_poly.size() == n1);
+			poly = out; // On remplace
 		}
 	}
-
-	out = curren_poly;
 }
 
 // Decoupe entre deux Mesh
