@@ -1,6 +1,7 @@
 #include <nanogui/nanogui.h>
 #include "GUI.h"
 #include "FenetreSH.h"
+#include "Remplissage.h"
 
 float margin = 0.03f;
 bool debug = true;
@@ -86,7 +87,11 @@ void GUI::init(GLFWwindow *window) {
     });
 
     b = new Button(w, "Remplissage");
-    b->setCallback([&] { std::cout << "Remplissage" << std::endl; });
+    b->setCallback([&] {
+		for (const Mesh& poly : polygons) {
+			RemplissageNaif(poly.getAllPoints(), width, height);
+		}
+	});
 
     setVisible(true);
     performLayout();
@@ -107,7 +112,6 @@ void GUI::draw(uint32_t shader) {
         poly.draw(width, height, shader, (mode == Mode::edit_Polygon_mode), editMode, mouse);
     for (const Mesh& poly : drawPoly)
         poly.draw(width, height, shader, false, false, mouse);
-
     // draw de nanoGUI
     drawContents();
     drawWidgets();
