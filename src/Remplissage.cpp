@@ -1,5 +1,6 @@
 #include <iostream>
 #include "Remplissage.h"
+#include "FenetreSH.h"
 
 GLuint VAO;
 GLuint VBO;
@@ -8,47 +9,24 @@ GLuint texId; // id en opengl
 std::vector<Eigen::Vector2f> tabPointToFill;
 std::vector<GLuint> vecTexture;
 
-
-struct Cote {
-	float ymax;
-	float xcurrent;
-	float invcoef;
-};
-
-struct Maillon {
-	float ymax;
-	float xcurrent;
-	float invcoef;
-};
-
 struct Segment {
 	Eigen::Vector2f a;
 	Eigen::Vector2f b;
 };
 
 Eigen::Vector2f world2local(float x, float y, int width, int height) {
-	return {
-		round(((x + 1.0f) / 2.0f) * width - 0.5f),
-		round(((-1.0f * (y - 1.0f)) / 2) * height - 0.5f)
-	};
-}
 
-void CreatSI(std::vector<Maillon>& SI, const std::vector<Eigen::Vector2f>& Poly) {
+	float x2 = x + 1.0f;
+	x2 /= 2.0f;
+	x2 *= width;
+	x2 -= 0.5f;
 
-}
+	float y2 = (-y + 1.0f);
+	y2 /= 2.0f;
+	y2 *= height;
+	y2 -= 0.5f;
 
-void InitLCA(std::vector<Cote>& LCA) {
-
-}
-
-void RemplissageLCA(const std::vector<Eigen::Vector2f>& Poly, const std::vector<Eigen::Vector2f>& CR)
-{
-	std::vector<Maillon> SI;
-	CreatSI(SI, Poly);
-
-	  
-	std::vector<Cote> LCA;
-	InitLCA(LCA);
+	return { round(x2), round(y2) };
 }
 
 void RemplissageNaif(const std::vector<Eigen::Vector2f>& Poly, int width, int height)
@@ -56,91 +34,42 @@ void RemplissageNaif(const std::vector<Eigen::Vector2f>& Poly, int width, int he
 	std::vector<Segment> tabSegment;
 	std::vector<Segment> tabSegmentToLocal;
 
-	std::cout << "Remplissage" << std::endl;
+	int lengthPoly = Poly.size();
 
-	// remplir le tableau de segment
-	std::cout << "Taille du Polygone: " << Poly.size() << std::endl;
-	for (int i = 0; i < Poly.size(); i++)
-	{
-		Segment segment;
-		segment.a = Poly[i];
-		if (i < Poly.size() - 1){
-			segment.b = Poly[i + 1];
-		} else {
-			segment.b = Poly[0];
-		}
-		std::cout << "x: [" << Poly[i][0] << "] y: [" << Poly[i][1] << "]" << std::endl;
-		tabSegment.push_back(segment);
-	}
-
-	// remplir le tableau de segment en transformant en coordonnées locales
-	std::cout << "Taille du tableau de segment: " << tabSegment.size() << std::endl;
-	for (int i = 0; i < tabSegment.size(); i++)
-	{
-		Segment segment;
-
-		std::cout << "A -> x: [" << tabSegment[i].a[0] << "] y: [" << tabSegment[i].a[1] << "]";
-		std::cout << " B  -> x: [" << tabSegment[i].b[0] << "] y: [" << tabSegment[i].b[1] << "]" << std::endl;
-
-		segment.a = world2local(tabSegment[i].a[0], tabSegment[i].a[1], width, height);
-		segment.b = world2local(tabSegment[i].b[0], tabSegment[i].b[1], width, height);
-		tabSegmentToLocal.push_back(segment);
-	}
-
-	std::cout << "Conversion en coordonnees locales ..." << std::endl;
-	// Afficher le tableau des segments en coordonnées locales
-	for (int i = 0; i < tabSegmentToLocal.size(); i++)
-	{
-		std::cout << "A -> x: [" << tabSegmentToLocal[i].a[0] << "] y: [" << tabSegmentToLocal[i].a[1] << "]";
-		std::cout << " B  -> x: [" << tabSegmentToLocal[i].b[0] << "] y: [" << tabSegmentToLocal[i].b[1] << "]" << std::endl;
-	}
-
-	// Déterminer la liste des points à remplir dans "tabPointToFill".
-	// On lance la demi-droite vers les x positifs et y = 0 comme ca ------------->
-	std::cout << "Points a remplir ..." << std::endl;
-	//std::cout << width << " " << height << std::endl;
-	bool found;
 	vecTexture.clear();
 	for (int x = 0; x < width; x++)
 	{
 		for (int y = 0; y < height; y++)
 		{
-			found = false;
-			for (int i = 0; i < tabSegmentToLocal.size(); i++)
+			for (int i = 0; i < lengthPoly; i++)
 			{
-				int xa = (int)tabSegmentToLocal[i].a[0];
-				int xb = (int)tabSegmentToLocal[i].a[1];
-				int ya = (int)tabSegmentToLocal[i].b[0];
-				int yb = (int)tabSegmentToLocal[i].b[1];
+				Segment segment;
+				segment.a = world2local(Poly[i][0], Poly[i][1], width, height);
+				segment.b = world2local(Poly[(i + 1) % lengthPoly][0], Poly[(i + 1) % lengthPoly][1], width, height);
 
-				if ((xa >= x) || (xb >= x))
-				{
-					if (((ya >= y) && (yb <= y)) || ((yb >= y) && (ya <= y)))
-					{
-						Eigen::Vector2f vector;
-						vector[0] = x;
-						vector[1] = y;
-						tabPointToFill.push_back(vector);
-						found = true;
-						break;
-						//std::cout << "[" << x << "][" << y << "] ";
+				if (segment.a[1] == segment.b[1]) {
+					vecTexture.push_back(0);
+					continue;
+				}
+				if (std::min(segment.a[1], segment.b[1]) < y && y <= std::max(segment.a[1], segment.b[1]) && x <= std::max(segment.a[0], segment.b[0])) {
+
+					if (segment.a[1] == segment.b[1]) {
+						vecTexture.push_back(-1);
+					} else if (coupe(segment.a, segment.b, { 5, y }, { 7, y })) {
+						Eigen::Vector2f tmp = intersection(segment.a, segment.b, { 5, y }, { 7, y });
+						if (tmp[0] >= x) {
+							vecTexture.push_back(-1);
+						} else {
+							vecTexture.push_back(0);
+						}
 					}
+				} else {
+					vecTexture.push_back(0);
 				}
 			}
-			vecTexture.push_back(found ? -1 : 0);
 		}
 	}
-	std::cout << "finish calculating" << std::endl;
 
-	//Afficher les points à colorier
-	std::cout << "size tab des points : " << tabPointToFill.size() << std::endl;
-	/*
-	for (int i = 0; i < tabPointToFill.size(); i++)
-	{
-		std::cout << "[" << tabPointToFill[i][0] << "][" << tabPointToFill[i][1] << "] " << std::endl;
-	}
-	*/
-	std::cout << "finish display" << std::endl;
 }
 
 void initRemplissage(uint32_t program, int width, int height) {
