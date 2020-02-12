@@ -6,6 +6,7 @@
 float margin = 0.03f;
 bool debug = true;
 
+
 GUI::GUI() : nanogui::Screen() {
     mode = Mode::no_Operation_mode;
     width = 640;
@@ -16,7 +17,7 @@ GUI::GUI() : nanogui::Screen() {
     polyToModify = nullptr;
 };
 
-void GUI::init(GLFWwindow *window) {
+void GUI::init(GLFWwindow *window, uint32_t shader) {
     using namespace nanogui;
     initialize(window, true);
 
@@ -93,6 +94,8 @@ void GUI::init(GLFWwindow *window) {
 		}
 	});
 
+	initRemplissage(shader, width, height);
+
     setVisible(true);
     performLayout();
 
@@ -101,24 +104,31 @@ void GUI::init(GLFWwindow *window) {
     cutWindow.init();
 }
 
-void GUI::draw(uint32_t shader) {
+void GUI::draw(uint32_t basic, uint32_t texture) {
+	glUseProgram(basic);
+
     if (cutWindow.size() == 1) cutWindow.setColor(currentColor);
     if (polygons.size() > 0 && polygons.back().size() == 1) (&polygons.back())->setColor(currentColor);
 
     const bool editMode = mode == Mode::select_mode;
 
-    cutWindow.draw(width, height, shader, (mode == Mode::edit_Window_mode), editMode, mouse);
+    cutWindow.draw(width, height, basic, (mode == Mode::edit_Window_mode), editMode, mouse);
     for (const Mesh& poly : polygons)
-        poly.draw(width, height, shader, (mode == Mode::edit_Polygon_mode), editMode, mouse);
+        poly.draw(width, height, basic, (mode == Mode::edit_Polygon_mode), editMode, mouse);
     for (const Mesh& poly : drawPoly)
-        poly.draw(width, height, shader, false, false, mouse);
+        poly.draw(width, height, basic, false, false, mouse);
     // draw de nanoGUI
+
+	glUseProgram(texture);
+	displayRemplissage(width, height);
+
     drawContents();
     drawWidgets();
 }
 
 void GUI::destroy() {
     cutWindow.destroy();
+	destroyRemplissage();
     for (Mesh poly : polygons)
         poly.destroy();
 }

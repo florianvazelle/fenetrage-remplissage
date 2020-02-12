@@ -1,6 +1,13 @@
 #include <iostream>
 #include "Remplissage.h"
 
+GLuint VAO;
+GLuint VBO;
+GLuint texId; // id en opengl
+//GLuint _pId; // shader
+std::vector<Eigen::Vector2f> tabPointToFill;
+
+
 struct Cote {
 	float ymax;
 	float xcurrent;
@@ -20,8 +27,8 @@ struct Segment {
 
 Eigen::Vector2f world2local(float x, float y, int width, int height) {
 	return {
-		((x + 1.0f) / 2.0f) * width - 0.5f,
-		((-1.0f * (y - 1.0f)) / 2) * height - 0.5f
+		round(((x + 1.0f) / 2.0f) * width - 0.5f),
+		round(((-1.0f * (y - 1.0f)) / 2) * height - 0.5f)
 	};
 }
 
@@ -47,7 +54,6 @@ void RemplissageNaif(const std::vector<Eigen::Vector2f>& Poly, int width, int he
 {
 	std::vector<Segment> tabSegment;
 	std::vector<Segment> tabSegmentToLocal;
-	std::vector<Eigen::Vector2f> tabPointToFill;
 
 	std::cout << "Remplissage" << std::endl;
 
@@ -92,9 +98,9 @@ void RemplissageNaif(const std::vector<Eigen::Vector2f>& Poly, int width, int he
 	// On lance la demi-droite vers les x positifs et y = 0 comme ca ------------->
 	std::cout << "Points a remplir ..." << std::endl;
 	//std::cout << width << " " << height << std::endl;
-	for (int x = 0; x < 100; x++)
+	for (int x = 0; x < width; x++)
 	{
-		for (int y = 0; y < 100; y++)
+		for (int y = 0; y < height; y++)
 		{
 			for (int i = 0; i < tabSegmentToLocal.size(); i++)
 			{
@@ -122,9 +128,76 @@ void RemplissageNaif(const std::vector<Eigen::Vector2f>& Poly, int width, int he
 
 	//Afficher les points à colorier
 	std::cout << "size tab des points : " << tabPointToFill.size() << std::endl;
+	/*
 	for (int i = 0; i < tabPointToFill.size(); i++)
 	{
 		std::cout << "[" << tabPointToFill[i][0] << "][" << tabPointToFill[i][1] << "] " << std::endl;
 	}
+	*/
 	std::cout << "finish display" << std::endl;
+}
+
+void initRemplissage(uint32_t program, int width, int height) {
+	const float triangles[] = {
+		-1.0f, -1.0f, /*uv*/0.f, 0.f,
+		-1.0f, +1.0f, /*uv*/0.f, 1.f,
+		+1.0f, +1.0f, /*uv*/1.f, 1.f,
+		// second triangle
+		-1.0f, -1.0f, /*uv*/0.f, 0.f,
+		+1.0f, +1.0f, /*uv*/1.f, 1.f,
+		+1.0f, -1.0f, /*uv*/1.f, 0.f,
+	};
+
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(triangles), triangles, GL_STATIC_DRAW);
+
+	glUniform1i(glGetUniformLocation(program, "u_TextureSampler"), 0); // Tu indique a quelle variable du fragment shader est associé la texture du canal 0
+
+	int position_location = glGetAttribLocation(program, "a_position");
+	glEnableVertexAttribArray(position_location);
+	glVertexAttribPointer(position_location, 2, GL_FLOAT, false, sizeof(float) * 4, 0);
+
+	int texcoords_location = glGetAttribLocation(program, "a_texcoords");
+	glEnableVertexAttribArray(texcoords_location);
+	glVertexAttribPointer(texcoords_location, 2, GL_FLOAT, false, sizeof(float) * 4, (const void *)(sizeof(float) * 2));
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	// Texture
+	glGenTextures(1, &texId);
+	glBindTexture(GL_TEXTURE_2D, texId);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, &tabPointToFill[0]);
+}
+
+void displayRemplissage(int width, int height) {
+	if (tabPointToFill.size() == 0)
+		return;
+
+	glBindTexture(GL_TEXTURE_2D, texId);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, &tabPointToFill[0]);
+	// Donc pas besoin de delete l'image a chaque fois
+
+	/* Pour draw */
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texId);
+
+	glBindVertexArray(VAO);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glBindVertexArray(0);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void destroyRemplissage() {
+	glDeleteTextures(1, &texId);
 }

@@ -4,6 +4,7 @@
 #include <nanogui/nanogui.h>
 #include "Mesh.h"
 #include "Point.h"
+//#include "GLShader.h"
 
 class GUI : public nanogui::Screen {
 	private:
@@ -27,8 +28,8 @@ class GUI : public nanogui::Screen {
 	public:
 		GUI();
 
-		void init(GLFWwindow* window);
-		void draw(uint32_t shader);
+		void init(GLFWwindow* window, uint32_t shader);
+		void draw(uint32_t basic, uint32_t texture);
 		void destroy(void);
 
 		void changeMode(Mode m);
