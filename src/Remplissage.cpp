@@ -6,6 +6,7 @@ GLuint VBO;
 GLuint texId; // id en opengl
 //GLuint _pId; // shader
 std::vector<Eigen::Vector2f> tabPointToFill;
+std::vector<GLuint> vecTexture;
 
 
 struct Cote {
@@ -98,10 +99,13 @@ void RemplissageNaif(const std::vector<Eigen::Vector2f>& Poly, int width, int he
 	// On lance la demi-droite vers les x positifs et y = 0 comme ca ------------->
 	std::cout << "Points a remplir ..." << std::endl;
 	//std::cout << width << " " << height << std::endl;
+	bool found;
+	vecTexture.clear();
 	for (int x = 0; x < width; x++)
 	{
 		for (int y = 0; y < height; y++)
 		{
+			found = false;
 			for (int i = 0; i < tabSegmentToLocal.size(); i++)
 			{
 				int xa = (int)tabSegmentToLocal[i].a[0];
@@ -117,11 +121,13 @@ void RemplissageNaif(const std::vector<Eigen::Vector2f>& Poly, int width, int he
 						vector[0] = x;
 						vector[1] = y;
 						tabPointToFill.push_back(vector);
+						found = true;
+						break;
 						//std::cout << "[" << x << "][" << y << "] ";
 					}
 				}
-				//std::cout << std::endl;
 			}
+			vecTexture.push_back(found ? -1 : 0);
 		}
 	}
 	std::cout << "finish calculating" << std::endl;
@@ -183,8 +189,9 @@ void displayRemplissage(int width, int height) {
 	if (tabPointToFill.size() == 0)
 		return;
 
+	assert(vecTexture.size() == width * height);
 	glBindTexture(GL_TEXTURE_2D, texId);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, &tabPointToFill[0]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, vecTexture.data());
 	// Donc pas besoin de delete l'image a chaque fois
 
 	/* Pour draw */

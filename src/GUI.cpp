@@ -105,6 +105,9 @@ void GUI::init(GLFWwindow *window, uint32_t shader) {
 }
 
 void GUI::draw(uint32_t basic, uint32_t texture) {
+    glUseProgram(texture);
+    displayRemplissage(width, height);
+
 	glUseProgram(basic);
 
     if (cutWindow.size() == 1) cutWindow.setColor(currentColor);
@@ -117,11 +120,8 @@ void GUI::draw(uint32_t basic, uint32_t texture) {
         poly.draw(width, height, basic, (mode == Mode::edit_Polygon_mode), editMode, mouse);
     for (const Mesh& poly : drawPoly)
         poly.draw(width, height, basic, false, false, mouse);
+    
     // draw de nanoGUI
-
-	glUseProgram(texture);
-	displayRemplissage(width, height);
-
     drawContents();
     drawWidgets();
 }
