@@ -69,21 +69,25 @@ void GUI::init(GLFWwindow *window, uint32_t shader) {
 
     b = new Button(w, "Fenetrage");
     b->setCallback([&] { 
-        drawPoly.clear();
-        for (const Mesh& poly : polygons) {
-            Mesh tmp;
-            tmp.init();
-            tmp.setColor({ 0.0f, 0.0f, 0.0f, 1.0f });
+        if (cutWindow.isClose()) {
+            drawPoly.clear();
+            for (const Mesh& poly : polygons) {
+                if (poly.isClose()) {
+                    Mesh tmp;
+                    tmp.init();
+                    tmp.setColor({ 0.0f, 0.0f, 0.0f, 1.0f });
 
-            std::vector<Eigen::Vector2f> res;
-            Decoupage(res, poly, cutWindow);
+                    std::vector<Eigen::Vector2f> res;
+                    Decoupage(res, poly, cutWindow);
 
-            for (const Eigen::Vector2f& v : res) {
-                tmp.addVertex(v);
+                    for (const Eigen::Vector2f& v : res) {
+                        tmp.addVertex(v);
+                    }
+                    tmp.setClose(true);
+
+                    drawPoly.push_back(tmp);
+                }
             }
-            tmp.setClose(true);
-
-            drawPoly.push_back(tmp);
         }
     });
 
