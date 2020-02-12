@@ -94,7 +94,7 @@ void GUI::init(GLFWwindow *window, uint32_t shader) {
     b = new Button(w, "Remplissage");
     b->setCallback([&] {
 		for (const Mesh& poly : polygons) {
-			RemplissageNaif(poly.getAllPoints(), width, height);
+            Fill(poly.getAllPoints(), width, height);
 		}
 	});
 

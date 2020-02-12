@@ -12,4 +12,6 @@ void initRemplissage(uint32_t shader, int width, int height);
 void displayRemplissage(int width, int height);
 void destroyRemplissage();
 
+void Fill(std::vector<Eigen::Vector2f> Poly, int width, int height);
+
 #endif
