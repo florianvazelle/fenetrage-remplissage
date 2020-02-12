@@ -3,6 +3,7 @@
 
 #include <nanogui/nanogui.h>
 #include "Mesh.h"
+#include "Remplissage.h"
 #include "Point.h"
 //#include "GLShader.h"
 
@@ -10,6 +11,7 @@ class GUI : public nanogui::Screen {
 	private:
 		enum class Mode : int { no_Operation_mode, select_mode, edit_Polygon_mode, edit_Window_mode };
 		Mode mode;
+		Remplissage fill;
 
 		int width, height;
 

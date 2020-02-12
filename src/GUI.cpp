@@ -94,11 +94,11 @@ void GUI::init(GLFWwindow *window, uint32_t shader) {
     b = new Button(w, "Remplissage");
     b->setCallback([&] {
 		for (const Mesh& poly : polygons) {
-            Fill(poly.getAllPoints(), width, height);
+            fill.Fill(poly.getAllPoints(), width, height);
 		}
 	});
 
-	initRemplissage(shader, width, height);
+    fill.initRemplissage(shader, width, height);
 
     setVisible(true);
     performLayout();
@@ -110,7 +110,7 @@ void GUI::init(GLFWwindow *window, uint32_t shader) {
 
 void GUI::draw(uint32_t basic, uint32_t texture) {
     glUseProgram(texture);
-    displayRemplissage(width, height);
+    fill.displayRemplissage(width, height);
 
 	glUseProgram(basic);
 
@@ -132,7 +132,7 @@ void GUI::draw(uint32_t basic, uint32_t texture) {
 
 void GUI::destroy() {
     cutWindow.destroy();
-	destroyRemplissage();
+    fill.destroyRemplissage();
     for (Mesh poly : polygons)
         poly.destroy();
 }
