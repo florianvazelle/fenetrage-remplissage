@@ -93,15 +93,13 @@ void GUI::init(GLFWwindow *window, uint32_t shader) {
 
     b = new Button(w, "Remplissage");
     b->setCallback([&] {
-		for (const Mesh& poly : polygons) {
-            fill.Fill(poly.getAllPoints(), width, height);
-		}
+        fill.Fill(drawPoly, width, height);
 	});
-
-    fill.initRemplissage(shader, width, height);
 
     setVisible(true);
     performLayout();
+
+    fill.initRemplissage(shader);
 
     defineCallbacks(window);
 
@@ -122,8 +120,10 @@ void GUI::draw(uint32_t basic, uint32_t texture) {
     cutWindow.draw(width, height, basic, (mode == Mode::edit_Window_mode), editMode, mouse);
     for (const Mesh& poly : polygons)
         poly.draw(width, height, basic, (mode == Mode::edit_Polygon_mode), editMode, mouse);
-    for (const Mesh& poly : drawPoly)
+
+    for (const Mesh& poly : drawPoly) {
         poly.draw(width, height, basic, false, false, mouse);
+    }
     
     // draw de nanoGUI
     drawContents();
@@ -132,6 +132,9 @@ void GUI::draw(uint32_t basic, uint32_t texture) {
 
 void GUI::destroy() {
     cutWindow.destroy();
+    for (Mesh& poly : drawPoly) {
+        poly.destroy();
+    }
     fill.destroyRemplissage();
     for (Mesh poly : polygons)
         poly.destroy();

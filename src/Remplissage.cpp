@@ -17,7 +17,7 @@ void world2local(Eigen::Vector2f& p, int width, int height) {
 	p = { round(x2), round(y2) };
 }
 
-void Remplissage::initRemplissage(uint32_t program, int width, int height) {
+void Remplissage::initRemplissage(uint32_t program) {
 	const float triangles[] = {
 		-1.0f, -1.0f, /*uv*/0.f, 0.f,
 		-1.0f, +1.0f, /*uv*/0.f, 1.f,
@@ -60,7 +60,7 @@ void Remplissage::initRemplissage(uint32_t program, int width, int height) {
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, &tabPointToFill[0]);
 }
 
-void Remplissage::displayRemplissage(int width, int height) {
+void Remplissage::displayRemplissage(int width, int height) const {
 	if (vecTexture.size() > 0) {
 		assert(vecTexture.size() == width * height);
 
@@ -160,7 +160,7 @@ void SI::buildSI(const std::vector<Eigen::Vector2f>& Poly) {
 	}
 }
 
-void updateTexture(std::vector<GLuint>& vecTexture, const std::list<Node>& L, int width) {
+void updateTexture(int y, std::vector<GLuint>& vecTexture, const std::list<Node>& L, int width) {
 
 	int x1, x2;
 
@@ -189,7 +189,7 @@ void updateTexture(std::vector<GLuint>& vecTexture, const std::list<Node>& L, in
 			iter1++;
 			iter1++;
 		}
-		vecTexture.push_back(found ? -1 : 0);
+		vecTexture[y * width + x] = (found ? -1 : (vecTexture[y * width + x] != 0) ? -1 : 0);
 	}
 }
 
@@ -247,17 +247,24 @@ void Remplissage::Fill(const std::vector<Eigen::Vector2f>& Poly, int width, int 
 
 	_SI.buildSI(P);
 
-	vecTexture.clear();
 	for (int yOfLine = 0; yOfLine < height; yOfLine++) {
 
 		buildLCA(LCA, _SI._list[yOfLine]);
 		if (!LCA.empty()) {
 
-			updateTexture(vecTexture, LCA, width);
+			updateTexture(yOfLine, vecTexture, LCA, width);
 			updateLCA(yOfLine, LCA);
 			sortLCA(LCA);
 		} else {
-			updateTexture(vecTexture, std::list<Node>(), width);
+			updateTexture(yOfLine, vecTexture, std::list<Node>(), width);
 		}
+	}
+}
+
+void Remplissage::Fill(const std::vector<Mesh>& drawPoly, int width, int height) {
+	vecTexture.clear();
+	vecTexture.resize(width * height);
+	for (const Mesh& poly : drawPoly) {
+		Fill(poly.getAllPoints(), width, height);
 	}
 }

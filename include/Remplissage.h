@@ -5,14 +5,16 @@
 #include <nanogui/nanogui.h>
 #include <math.h>
 #include "GLShader.h"
+#include "Mesh.h"
 
 class Remplissage {
 public:
-	void initRemplissage(uint32_t shader, int width, int height);
-	void displayRemplissage(int width, int height);
+	void initRemplissage(uint32_t shader);
+	void displayRemplissage(int width, int height) const;
 	void destroyRemplissage();
 
 	void Fill(const std::vector<Eigen::Vector2f>& Poly, int width, int height);
+	void Fill(const std::vector<Mesh>& drawPoly, int width, int height);
 
 private:
 	GLuint _vao;
