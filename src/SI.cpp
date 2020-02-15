@@ -3,7 +3,7 @@
 SI::SI(int height) {
     List<Node> emptyList;
 
-	emptyList.push_front(Node());
+	emptyList.push_back(Node());
 	for (int i = 0; i < height; i++) {
 		_list.push_back(emptyList);
 	}
@@ -29,7 +29,7 @@ void SI::build(const std::vector<Eigen::Vector2f>& Poly) {
 	}
 }
 
-int SI::yNext(int k, const std::vector<Eigen::Vector2f>& p) {
+int SI::yNext(int k, const std::vector<Eigen::Vector2f>& p) const {
 	int j; 
 
 	if ((k + 1) > (p.size() - 1))

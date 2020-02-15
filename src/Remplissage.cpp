@@ -1,11 +1,10 @@
 #include <iostream>
+#include <iterator>
 
 #include "LCA.h"
-#include "Node.h"
 #include "SI.h"
-#include "CustomList.h"
+
 #include "Remplissage.h"
-#include "FenetreSH.h"
 
 void world2local(Eigen::Vector2f& p, int width, int height) {
 
@@ -88,36 +87,28 @@ void Remplissage::destroyRemplissage() {
 	glDeleteTextures(1, &texId);
 }
 
-void updateTexture(int y, std::vector<GLuint>& vecTexture, const List<Node>& L, int width) {
+void Remplissage::updateTexture(int y, const List<Node>& L, int width) {
 
 	int x1, x2;
 
 	bool found;
 	for (int x = 0; x < width; x++) {
 		found = false;
-		List<Node>::const_iterator iter1 = L.begin();
-		while (iter1 != L.end()) {
+
+		for (List<Node>::const_iterator iter1 = L.begin(); iter1 != L.end(); advance(iter1, 2)) {
 			List<Node>::const_iterator iter2 = iter1;
 			iter2++;
-			x1 = (int)(*iter1).xmin; 
-			x2 = (int)(*iter2).xmin;
 
-			if (x1 < x2) {
-				if (x1 <= x && x <= x2) {
-					found = true;
-					break;
-				}
-			} else {
-				if (x1 >= x && x >= x2) {
-					found = true;
-					break;
-				}
+			x1 = (int) iter1->xmin; 
+			x2 = (int) iter2->xmin;
+
+			found = ((x1 < x2) && (x1 <= x && x <= x2)) || (!(x1 < x2) && (x1 >= x && x >= x2));
+			if (found) {
+				vecTexture[y * width + x] = -1;
+				break;
 			}
-
-			iter1++;
-			iter1++;
 		}
-		vecTexture[y * width + x] = (found ? -1 : (vecTexture[y * width + x] != 0) ? -1 : 0);
+		// vecTexture[y * width + x] = ((found || vecTexture[y * width + x] != 0) ? -1 : 0);
 	}
 }
 
@@ -139,15 +130,15 @@ void Remplissage::Fill(const std::vector<Eigen::Vector2f>& Poly, int width, int 
 		_lca.build(_si[yOfLine]);
 		if (!_lca.empty()) {
 
-			updateTexture(yOfLine, vecTexture, _lca.getList(), width);
+			updateTexture(yOfLine, _lca.getList(), width);
 			_lca.update(yOfLine);
 			_lca.sort();
 		} else {
 			// Si lca est vide, on update la ligne, dans la texture, a 0 
-			// updateTexture(yOfLine, vecTexture, List<Node>(), width);
-			for (int x = 0; x < width; x++) {
+			// updateTexture(yOfLine, List<Node>(), width);
+			/*for (int x = 0; x < width; x++) {
 				vecTexture[yOfLine * width + x] = (vecTexture[yOfLine * width + x] != 0) ? -1 : 0;
-			}
+			}*/
 		}
 	}
 }
