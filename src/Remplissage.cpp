@@ -1,4 +1,9 @@
 #include <iostream>
+
+#include "LCA.h"
+#include "Node.h"
+#include "SI.h"
+#include "CustomList.h"
 #include "Remplissage.h"
 #include "FenetreSH.h"
 
@@ -36,7 +41,7 @@ void Remplissage::initRemplissage(uint32_t program) {
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(triangles), triangles, GL_STATIC_DRAW);
 
-	glUniform1i(glGetUniformLocation(program, "u_TextureSampler"), 0); // Tu indique a quelle variable du fragment shader est associé la texture du canal 0
+	glUniform1i(glGetUniformLocation(program, "u_TextureSampler"), 0); // Tu indique a quelle variable du fragment shader est associï¿½ la texture du canal 0
 
 	int position_location = glGetAttribLocation(program, "a_position");
 	glEnableVertexAttribArray(position_location);
@@ -83,93 +88,16 @@ void Remplissage::destroyRemplissage() {
 	glDeleteTextures(1, &texId);
 }
 
-class Node
-{
-public:
-	int ymax;
-	float xmin, invertCoef;
-	Node() : ymax(-1), xmin(0.0), invertCoef(0.0) { };
-};
-
-class SI {
-public:
-	// Contruit la structure
-	void buildSI(const std::vector<Eigen::Vector2f>&);
-	// Cherche le point suivant
-	int yNext(int, const std::vector<Eigen::Vector2f>&);
-	// Enregistre les cotés
-	void recordOfSide(const Eigen::Vector2f&, const Eigen::Vector2f&, int);
-
-	std::vector<std::list<Node>> _list;
-};
-
-
-void insertInTheList(std::list<Node>& orderedList, const Node& item) {
-	std::list<Node>::iterator currentNode = orderedList.begin();
-	while ((currentNode != orderedList.end()) && ((*currentNode).xmin < item.xmin)) {
-		currentNode++;
-	}
-	orderedList.insert(currentNode, item);
-}
-
-int SI::yNext(int k, const std::vector<Eigen::Vector2f>& p) {
-	int j; 
-
-	if ((k + 1) > (p.size() - 1))
-		j = 0;
-	else
-		j = k + 1;
-	while (p[k][1] == p[j][1])
-		if ((j + 1) > (p.size() - 1))
-			j = 0;
-		else
-			j++;
-	return (p[j][1]);
-}
-
-void SI::recordOfSide(const Eigen::Vector2f& minPoint, const Eigen::Vector2f& maxPoint, int yComp) {
-	Node n;
-	n.invertCoef = (float)(maxPoint[0] - minPoint[0]) / (maxPoint[1] - minPoint[1]);
-	n.xmin = minPoint[0];
-
-	if (maxPoint[1] < yComp)
-		n.ymax = maxPoint[1] - 1;
-	else
-		n.ymax = maxPoint[1];
-	insertInTheList(_list[minPoint[1]], n);
-}
-
-void SI::buildSI(const std::vector<Eigen::Vector2f>& Poly) {
-	Eigen::Vector2f v1, v2;
-	int i, yPrev;
-
-	yPrev = Poly[Poly.size() - 2][1];
-	v1[0] = Poly[Poly.size() - 1][0];
-	v1[1] = Poly[Poly.size() - 1][1]; 
-
-	for (i = 0; i < Poly.size(); i++) {
-		v2 = Poly[i];
-		if (v1[1] != v2[1]) {
-			if (v1[1] < v2[1])
-				recordOfSide(v1, v2, yNext(i, Poly)); 
-			else
-				recordOfSide(v2, v1, yPrev); 
-		}
-		yPrev = v1[1];
-		v1 = v2;
-	}
-}
-
-void updateTexture(int y, std::vector<GLuint>& vecTexture, const std::list<Node>& L, int width) {
+void updateTexture(int y, std::vector<GLuint>& vecTexture, const List<Node>& L, int width) {
 
 	int x1, x2;
 
 	bool found;
 	for (int x = 0; x < width; x++) {
 		found = false;
-		std::list<Node>::const_iterator iter1 = L.begin();
+		List<Node>::const_iterator iter1 = L.begin();
 		while (iter1 != L.end()) {
-			std::list<Node>::const_iterator iter2 = iter1;
+			List<Node>::const_iterator iter2 = iter1;
 			iter2++;
 			x1 = (int)(*iter1).xmin; 
 			x2 = (int)(*iter2).xmin;
@@ -193,41 +121,6 @@ void updateTexture(int y, std::vector<GLuint>& vecTexture, const std::list<Node>
 	}
 }
 
-void buildLCA(std::list<Node>& LCA, const std::list<Node>& Element) {
-	std::list<Node>::const_iterator iter;
-	iter = Element.begin();
-	iter++;
-
-	while (iter != Element.end()) {
-		insertInTheList(LCA, *iter);
-		iter++;
-	}
-}
-
-void updateLCA(int y, std::list<Node>& L) {
-
-	std::list<Node>::iterator iter = L.begin();
-	while (iter != L.end()) {
-		if (y >= (*iter).ymax) {
-			L.erase(iter++);
-		} else {
-			(*iter).xmin += (*iter).invertCoef;
-			iter++;
-		}
-	}
-}
-
-void sortLCA(std::list<Node>& L) {
-	std::list<Node> L1;
-	std::list<Node>::iterator iter = L.begin();
-	while (iter != L.end())
-	{
-		insertInTheList(L1, *iter);
-		L.erase(iter++);
-	}
-	L = L1;
-}
-
 void Remplissage::Fill(const std::vector<Eigen::Vector2f>& Poly, int width, int height) {
 
 	std::vector<Eigen::Vector2f> P(Poly);
@@ -235,35 +128,35 @@ void Remplissage::Fill(const std::vector<Eigen::Vector2f>& Poly, int width, int 
 		world2local(p, width, height);
 	}
 
-	SI _SI;
-	std::list<Node> LCA;
+	SI _si(height);
+	LCA _lca;
 
-	std::list<Node> EmptyList;
+	_si.build(P);
 
-	EmptyList.push_front(Node());
-	for (int i = 0; i < height; i++) {
-		_SI._list.push_back(EmptyList);
-	}
-
-	_SI.buildSI(P);
-
+	// Pour chaque lignes de l'ecran
 	for (int yOfLine = 0; yOfLine < height; yOfLine++) {
 
-		buildLCA(LCA, _SI._list[yOfLine]);
-		if (!LCA.empty()) {
+		_lca.build(_si[yOfLine]);
+		if (!_lca.empty()) {
 
-			updateTexture(yOfLine, vecTexture, LCA, width);
-			updateLCA(yOfLine, LCA);
-			sortLCA(LCA);
+			updateTexture(yOfLine, vecTexture, _lca.getList(), width);
+			_lca.update(yOfLine);
+			_lca.sort();
 		} else {
-			updateTexture(yOfLine, vecTexture, std::list<Node>(), width);
+			// Si lca est vide, on update la ligne, dans la texture, a 0 
+			// updateTexture(yOfLine, vecTexture, List<Node>(), width);
+			for (int x = 0; x < width; x++) {
+				vecTexture[yOfLine * width + x] = (vecTexture[yOfLine * width + x] != 0) ? -1 : 0;
+			}
 		}
 	}
 }
 
 void Remplissage::Fill(const std::vector<Mesh>& drawPoly, int width, int height) {
+	// On prepare la nouvelle texture
 	vecTexture.clear();
 	vecTexture.resize(width * height);
+
 	for (const Mesh& poly : drawPoly) {
 		Fill(poly.getAllPoints(), width, height);
 	}
