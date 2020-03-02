@@ -3,30 +3,35 @@
 
 #include <nanogui/nanogui.h>
 #include "Mesh.h"
-#include "Hitbox.h"
+#include "Remplissage.h"
+#include "Point.h"
+//#include "GLShader.h"
 
 class GUI : public nanogui::Screen {
 	private:
-		enum class Mode : int { no_Operation_mode, edit_Polygon_mode, edit_Window_mode };
+		enum class Mode : int { no_Operation_mode, select_mode, edit_Polygon_mode, edit_Window_mode };
 		Mode mode;
+		Remplissage fill;
 
 		int width, height;
 
 		Eigen::Vector2f mouse;
-		Mesh polygon, cutWindow;
-		std::vector<Mesh> polygons;
-		std::vector<Hitbox> polygonHitboxes;
+		
+		Mesh cutWindow;							// Fenetre
+		std::vector<Mesh> drawPoly;
+		Mesh* polyToModify;						// Mesh que l'on va vouloir modifier
+		std::vector<Mesh> polygons;				// Liste de tout les polygones
 
 		nanogui::Color currentColor;
 
 		bool wantToEditPolygon = false;
-		int indicePolygonToModify = 0;
+		iterator_point indicePointToModify;
 
 	public:
 		GUI();
 
-		void init(GLFWwindow* window);
-		void draw(uint32_t shader);
+		void init(GLFWwindow* window, uint32_t shader);
+		void draw(uint32_t basic, uint32_t texture);
 		void destroy(void);
 
 		void changeMode(Mode m);

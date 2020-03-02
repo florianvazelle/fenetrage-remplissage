@@ -1,7 +1,11 @@
 #include <nanogui/nanogui.h>
 #include "GUI.h"
+#include "FenetreSH.h"
+#include "Remplissage.h"
 
 float margin = 0.03f;
+bool debug = true;
+
 
 GUI::GUI() : nanogui::Screen() {
     mode = Mode::no_Operation_mode;
@@ -9,10 +13,11 @@ GUI::GUI() : nanogui::Screen() {
     height = 480;
     mouse = Eigen::Vector2f(0.0f, 0.0f);
     currentColor = nanogui::Color(Eigen::Vector4f(1.0f, 0.0f, 0.0f, 1.0f));
-	polygonHitboxes.clear();
+
+    polyToModify = nullptr;
 };
 
-void GUI::init(GLFWwindow *window) {
+void GUI::init(GLFWwindow *window, uint32_t shader) {
     using namespace nanogui;
     initialize(window, true);
 
@@ -35,7 +40,7 @@ void GUI::init(GLFWwindow *window) {
     b->setPushed(true);
 
     b = new Button(tools, "");
-    b->setCallback([&] { changeMode(Mode::no_Operation_mode); });
+    b->setCallback([&] { changeMode(Mode::select_mode); });
     b->setIcon(ENTYPO_ICON_MOUSE_POINTER);
     b->setFlags(Button::RadioButton);
 
@@ -45,7 +50,7 @@ void GUI::init(GLFWwindow *window) {
 
     b = new Button(tools, "");
     b->setIcon(ENTYPO_ICON_TRASH);
-    b->setCallback([&] { polygon.clear(); polygonHitboxes.clear(); });
+    b->setCallback([&] { if (polygons.size() > 0) polygons.pop_back(); });
 
     b = new Button(tools, "Fenetre");
     b->setCallback([&] { changeMode(Mode::edit_Window_mode); });
@@ -53,7 +58,7 @@ void GUI::init(GLFWwindow *window) {
 
     b = new Button(tools, "");
     b->setIcon(ENTYPO_ICON_TRASH);
-    b->setCallback([&] { cutWindow.clear(); });
+    b->setCallback([&] { cutWindow.clear(); cutWindow.setClose(false); });
 
     auto cp = new ColorPicker(tools, { 255, 0, 0, 255 });
     cp->setFinalCallback([&](const Color& c) { currentColor = c; });
@@ -63,31 +68,63 @@ void GUI::init(GLFWwindow *window) {
     new Label(w, "Effectuer", "sans-bold", 25);
 
     b = new Button(w, "Fenetrage");
-    b->setCallback([&] { std::cout << "Fenetrage" << std::endl; });
+    b->setCallback([&] { 
+        if (cutWindow.isClose()) {
+            drawPoly.clear();
+            for (const Mesh& poly : polygons) {
+                if (poly.isClose()) {
+                    Mesh tmp;
+                    tmp.init();
+                    tmp.setColor({ 0.0f, 0.0f, 0.0f, 1.0f });
+
+                    std::vector<Eigen::Vector2f> res;
+                    Decoupage(res, poly, cutWindow);
+
+                    for (const Eigen::Vector2f& v : res) {
+                        tmp.addVertex(v);
+                    }
+                    tmp.setClose(true);
+
+                    drawPoly.push_back(tmp);
+                }
+            }
+        }
+    });
 
     b = new Button(w, "Remplissage");
-    b->setCallback([&] { std::cout << "Remplissage" << std::endl; });
+    b->setCallback([&] {
+        fill.Fill(drawPoly, width, height);
+	});
 
     setVisible(true);
     performLayout();
 
+    fill.initRemplissage(shader);
+
     defineCallbacks(window);
 
     cutWindow.init();
-    polygon.init();
 }
 
-void GUI::draw(uint32_t shader) {
+void GUI::draw(uint32_t basic, uint32_t texture) {
+    glUseProgram(texture);
+    fill.displayRemplissage(width, height);
+
+	glUseProgram(basic);
+
     if (cutWindow.size() == 1) cutWindow.setColor(currentColor);
-    if (polygon.size() == 1) polygon.setColor(currentColor);
+    if (polygons.size() > 0 && polygons.back().size() == 1) (&polygons.back())->setColor(currentColor);
 
-    cutWindow.draw(width, height, shader, (mode == Mode::edit_Window_mode), mouse);
-    polygon.draw(width, height, shader, (mode == Mode::edit_Polygon_mode), mouse);
+    const bool editMode = mode == Mode::select_mode;
 
-    // Draw Hitbox
-	for (Hitbox i : polygonHitboxes)
-		i.draw(shader, mouse);
+    cutWindow.draw(width, height, basic, (mode == Mode::edit_Window_mode), editMode, mouse);
+    for (const Mesh& poly : polygons)
+        poly.draw(width, height, basic, (mode == Mode::edit_Polygon_mode), editMode, mouse);
 
+    for (const Mesh& poly : drawPoly) {
+        poly.draw(width, height, basic, false, false, mouse);
+    }
+    
     // draw de nanoGUI
     drawContents();
     drawWidgets();
@@ -95,14 +132,16 @@ void GUI::draw(uint32_t shader) {
 
 void GUI::destroy() {
     cutWindow.destroy();
-    polygon.destroy();
-
-	for (Hitbox i : polygonHitboxes)
-		i.destroy();
+    for (Mesh& poly : drawPoly) {
+        poly.destroy();
+    }
+    fill.destroyRemplissage();
+    for (Mesh poly : polygons)
+        poly.destroy();
 }
 
 void GUI::changeMode(Mode m) {
-    static const char* ModeStrings[] = { "no_Operation_mode", "edit_Polygon_mode", "edit_Window_mode" };
+    static const char* ModeStrings[] = { "no_Operation_mode", "select_mode", "edit_Polygon_mode", "edit_Window_mode" };
     std::cout << "Changement de mode: " << ModeStrings[(int)m] << std::endl;
     mode = m;
 }
@@ -123,18 +162,8 @@ void GUI::defineCallbacks(GLFWwindow* window) {
         gui->mouse[0] = coordGL[0];
         gui->mouse[1] = coordGL[1];
 
-		if (gui->wantToEditPolygon == true) {
-			if (gui->indicePolygonToModify == 0 || gui->indicePolygonToModify == gui->polygon.size() - 1) {
-				gui->polygon.setVertex(0, coordGL);
-				gui->polygon.setVertex(gui->polygon.size() - 1, coordGL);
-			} else {
-				gui->polygon.setVertex(gui->indicePolygonToModify, coordGL);
-			}
-
-            gui->polygonHitboxes[gui->indicePolygonToModify].setVertex(0, { coordGL[0] - margin, coordGL[1] - margin });
-            gui->polygonHitboxes[gui->indicePolygonToModify].setVertex(1, { coordGL[0] - margin, coordGL[1] + margin });
-            gui->polygonHitboxes[gui->indicePolygonToModify].setVertex(2, { coordGL[0] + margin, coordGL[1] + margin });
-            gui->polygonHitboxes[gui->indicePolygonToModify].setVertex(3, { coordGL[0] + margin, coordGL[1] - margin });
+		if (gui->wantToEditPolygon && gui->polyToModify != nullptr) {
+            gui->indicePointToModify->setPosition(coordGL);
 		}
     });
 
@@ -149,66 +178,117 @@ void GUI::defineCallbacks(GLFWwindow* window) {
 
             // En fonction du mode, on va ajoute le sommets dans le mesh correspondant
             if (gui->mode == Mode::edit_Polygon_mode) {
-				bool insideHitBox = false;
-				int indiceHitBox = 0;
-
-                // Regarde si le click s'effectue dans une hitbox
-                for (indiceHitBox = 0; indiceHitBox < gui->polygonHitboxes.size(); indiceHitBox++) {
-                    Hitbox currentHitbox = gui->polygonHitboxes[indiceHitBox];
-                    if (currentHitbox.contain(coordGL[0], coordGL[1])) {
-                        insideHitBox = true;
-                        break;
-                    }
+                if (gui->polygons.size() == 0 || gui->polygons.back().isClose()) {
+                    Mesh tmp;
+                    tmp.init();
+                    gui->polygons.push_back(tmp);
                 }
 
-				if (insideHitBox) {
+                Mesh* currentPoly = &gui->polygons.back();
+                const_iterator_point pointInsideHitBox = currentPoly->contain(coordGL[0], coordGL[1]);
+
+				if (currentPoly->isValid(pointInsideHitBox)) {
                     // Si oui, on ferme le mesh
-					gui->polygon.addVertex(gui->polygon.getVertex(0));
+                    currentPoly->setClose(true);
 				} else {
                     // Sinon, comportement normal
                     // On ajoute le point au mesh et sa hitbox correspondante
-					gui->polygon.addVertex(coordGL);
-
-					Hitbox hitBox;
-					hitBox.init();
-                    hitBox.addVertex({ coordGL[0] - margin, coordGL[1] - margin });
-                    hitBox.addVertex({ coordGL[0] - margin, coordGL[1] + margin });
-                    hitBox.addVertex({ coordGL[0] + margin, coordGL[1] + margin });
-                    hitBox.addVertex({ coordGL[0] + margin, coordGL[1] - margin });
-					gui->polygonHitboxes.push_back(hitBox);
+                    currentPoly->addVertex(coordGL);
 				}
             } else if (gui->mode == Mode::edit_Window_mode) {
-                gui->cutWindow.addVertex(coordGL);
-			} else if (gui->mode == Mode::no_Operation_mode) {
-				bool insideHitBox = false;
-				int indiceHitBox = 0;
+                const_iterator_point pointInsideHitBox = gui->cutWindow.contain(coordGL[0], coordGL[1]);
 
-                // Regarde si le click s'effectue dans une hitbox
-                for (indiceHitBox = 0; indiceHitBox < gui->polygonHitboxes.size(); indiceHitBox++) {
-                    Hitbox currentHitbox = gui->polygonHitboxes[indiceHitBox];
-                    if (currentHitbox.contain(coordGL[0], coordGL[1])) {
-                        insideHitBox = true;
+                if (gui->cutWindow.isValid(pointInsideHitBox)) {
+                    gui->cutWindow.setClose(true);
+                } else {
+                    gui->cutWindow.addVertex(coordGL);
+                }
+			} else if (gui->mode == Mode::select_mode) {
+                if (gui->wantToEditPolygon) {
+                    gui->wantToEditPolygon = false;
+                    gui->polyToModify = nullptr;
+                    return;
+                }
+
+                iterator_point pointInsideHitBox;
+
+                // On parcours tout les polygones
+                for (int i = 0; i < gui->polygons.size(); i++) {
+                    pointInsideHitBox = gui->polygons[i].contain(coordGL[0], coordGL[1]);
+                    // Si le click est dans une hitbox
+                    if (gui->polygons[i].isValid(pointInsideHitBox)) {
+                        if (!gui->wantToEditPolygon) {
+                            // On indique que l'on veut modifier un sommet du polygon 
+                            // et on indique le sommet
+                            gui->wantToEditPolygon = true;
+                            gui->polyToModify = &gui->polygons[i];
+                            gui->indicePointToModify = pointInsideHitBox;
+                        }
                         break;
                     }
                 }
 
-				if (insideHitBox) {
-                    // Si le click est dans une hitbox
-					if (gui->wantToEditPolygon == false) {
+                // Pareil pour la fenetre
+                pointInsideHitBox = gui->cutWindow.contain(coordGL[0], coordGL[1]);
+                if (gui->cutWindow.isValid(pointInsideHitBox)) {
+                    if (!gui->wantToEditPolygon) {
                         // On indique que l'on veut modifier un sommet du polygon 
-                        // et on indique l'indice de ce sommet
-						gui->wantToEditPolygon = true;
-						gui->indicePolygonToModify = indiceHitBox;
-					} else {
-						gui->wantToEditPolygon = false;
-					}
-				}
+                        // et on indique le sommet
+                        gui->wantToEditPolygon = true;
+                        gui->polyToModify = &gui->cutWindow;
+                        gui->indicePointToModify = pointInsideHitBox;
+                    }
+                }
 			}
         }
     });
 
     glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
-        static_cast<GUI*>(glfwGetWindowUserPointer(window))->keyCallbackEvent(key, scancode, action, mods);
+        GUI* gui = static_cast<GUI*>(glfwGetWindowUserPointer(window));
+        gui->keyCallbackEvent(key, scancode, action, mods);
+        
+        if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+            if (!debug) {
+                gui->cutWindow.setColor({ 0.0f, 1.0f, 0.0f, 1.0f });
+                gui->cutWindow.addVertex({ -0.23f, 0.22f });
+                gui->cutWindow.addVertex({ -0.11f, 0.36f });
+                gui->cutWindow.addVertex({ 0.3f, 0.22f });
+                gui->cutWindow.addVertex({ 0.22f, -0.22f });
+                gui->cutWindow.addVertex({ -0.19f, -0.16f });
+                gui->cutWindow.setClose(true);
+
+                Mesh tmp;
+                tmp.init();
+                tmp.setColor({ 1.0f, 1.0f, 0.0f, 1.0f });
+                tmp.addVertex({ 0.0f, 0.38f });
+                tmp.addVertex({ 0.37f, -0.03f });
+                tmp.addVertex({ 0.0f, -0.26f });
+                tmp.addVertex({ -0.13f, -0.05f });
+                tmp.addVertex({ -0.33f, 0.04f });
+                tmp.setClose(true);
+                gui->polygons.push_back(tmp);
+
+                debug = true;
+            }
+
+            gui->drawPoly.clear();
+            for (const Mesh& poly : gui->polygons) {
+                std::cout << "Decoupage" << std::endl;
+                Mesh tmp;
+                tmp.init();
+                tmp.setColor({ 0.0f, 0.0f, 0.0f, 1.0f });
+
+                std::vector<Eigen::Vector2f> res;
+                Decoupage(res, poly, gui->cutWindow);
+
+                for (Eigen::Vector2f v : res) {
+                    tmp.addVertex(v);
+                }
+                tmp.setClose(true);
+
+                gui->drawPoly.push_back(tmp);
+            }
+        }
     });
 
     glfwSetCharCallback(window, [](GLFWwindow* window, unsigned int codepoint) {

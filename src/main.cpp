@@ -24,6 +24,7 @@
 
 nanogui::ref<GUI> app;
 GLShader g_BasicShader;
+GLShader g_TextureShader;
 
 void Initialize(GLFWwindow* window) {
 #if defined(NANOGUI_GLAD)
@@ -46,7 +47,11 @@ void Initialize(GLFWwindow* window) {
     g_BasicShader.LoadFragmentShader("./resources/shaders/Basic.fs");
     g_BasicShader.Create();
 
-    app->init(window);
+	g_TextureShader.LoadVertexShader("./resources/shaders/Texture.vs");
+	g_TextureShader.LoadFragmentShader("./resources/shaders/Texture.fs");
+	g_TextureShader.Create();
+
+    app->init(window, g_TextureShader.GetProgram());
 }
 
 void Shutdown() {
@@ -67,9 +72,9 @@ void Display(GLFWwindow* window){
     app->setHeight(height);
 
     auto basic = g_BasicShader.GetProgram();
-    glUseProgram(basic);
+	auto texture = g_TextureShader.GetProgram();
 
-    app->draw(basic);
+    app->draw(basic, texture);
 }
 
 int main(void) {
